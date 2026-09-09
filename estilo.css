@@ -1,0 +1,541 @@
+/* ===== FUENTES EXTERNAS ===== */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600;700&display=swap');
+
+/* ===== RESETEO Y BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ===== FONDO DE LA PÁGINA ===== */
+body {
+    min-height: 100vh;
+    background: #0a0a0a;
+    background-image: radial-gradient(circle at 20% 30%, #1a1a1a 0%, #0a0a0a 90%);
+    display: flex;
+    flex-direction: column;        /* Apila elementos verticalmente */
+    justify-content: center;
+    align-items: center;
+    font-family: 'Poppins', sans-serif;
+    padding: 20px;
+    position: relative;
+}
+/* ===== IMAGEN CIRCULAR ===== */
+.imagen-cita {
+    display: block;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 5px;
+    border: 4px solid #D7A86E;
+    box-shadow: 0 0 30px rgba(215, 168, 110, 0.3);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.imagen-cita:hover {
+    transform: scale(1.05) rotate(-2deg);
+    box-shadow: 0 0 50px rgba(215, 168, 110, 0.5);
+}
+
+/* ===== TÍTULO RESPONSIVE ===== */
+h1 {
+    font-family: 'Playfair Display', serif;
+    color: #D7A86E;
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: clamp(1px, 0.3vw, 3px);
+    text-shadow: 0 4px 20px rgba(215, 168, 110, 0.2);
+    margin: 0 0 20px 0;
+    line-height: 1.2;
+    text-transform: uppercase;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    text-align: center;
+}
+
+/* ===== LABELS (etiquetas tipo banner) ===== */
+.label-banner {
+    display: block;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #D7A86E;
+    margin-bottom: 4px;
+    text-align: left;
+    padding-left: 5px;
+    opacity: 0.8;
+    width: 100%;
+    max-width: 440px;
+}
+
+/* ===== INPUT DE NOMBRE (estilo transparente) ===== */
+#nombreInput {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(215, 168, 110, 0.25);
+    border-radius: 50px;
+    padding: 15px 22px;
+    width: 100%;
+    max-width: 440px;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;
+    color: #f0e6d3;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    margin-bottom: 14px;
+}
+
+#nombreInput::placeholder {
+    color: rgba(240, 230, 211, 0.5);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+}
+
+#nombreInput:focus {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #D7A86E;
+    box-shadow: 0 0 25px rgba(215, 168, 110, 0.15), inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    color: #fff;
+}
+
+/* ===== INPUTS DE FECHA Y HORA (estilo botón/banner) ===== */
+#fechaInput,
+#horaInput {
+    background: linear-gradient(145deg, #2a1f1a, #1a1210);
+    border: 2px solid rgba(215, 168, 110, 0.4);
+    border-radius: 50px;
+    padding: 14px 22px;
+    width: 100%;
+    max-width: 440px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #f0e6d3;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    margin-bottom: 18px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    text-align: center;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+/* Personalizar el ícono del calendario/reloj */
+#fechaInput::-webkit-calendar-picker-indicator,
+#horaInput::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(100%) sepia(30%) hue-rotate(10deg) saturate(300%);
+    cursor: pointer;
+    padding: 5px;
+    opacity: 0.6;
+    margin-left: 8px;
+}
+
+/* Efecto hover (como botón) */
+#fechaInput:hover,
+#horaInput:hover {
+    border-color: #D7A86E;
+    background: linear-gradient(145deg, #3d2c25, #241a16);
+    box-shadow: 0 8px 25px rgba(215, 168, 110, 0.2), inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Efecto focus (activo) */
+#fechaInput:focus,
+#horaInput:focus {
+    border-color: #D7A86E;
+    background: linear-gradient(145deg, #3d2c25, #241a16);
+    box-shadow: 0 0 30px rgba(215, 168, 110, 0.25), inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    transform: scale(1.02);
+}
+
+/* Ocultar el texto "placeholder" cuando tiene valor */
+#fechaInput:valid,
+#horaInput:valid {
+    color: #f0e6d3;
+}
+
+/* ===== INPUT DE SERVICIO (estilo transparente) ===== */
+#servicioInput {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(215, 168, 110, 0.25);
+    border-radius: 50px;
+    padding: 15px 22px;
+    width: 100%;
+    max-width: 440px;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;
+    color: #f0e6d3;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    margin-bottom: 14px;
+}
+
+#servicioInput::placeholder {
+    color: rgba(240, 230, 211, 0.5);
+    font-weight: 300;
+}
+
+#servicioInput:focus {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #D7A86E;
+    box-shadow: 0 0 25px rgba(215, 168, 110, 0.15), inset 0 2px 8px rgba(0, 0, 0, 0.4);
+    color: #fff;
+}
+
+/* ===== BOTÓN DE AGENDAR ===== */
+#agendarBtn {
+    background: linear-gradient(145deg, #D7A86E, #b8925a);
+    border: none;
+    border-radius: 50px;
+    padding: 16px 28px;
+    width: 100%;
+    max-width: 440px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: #0a0a0a;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 25px rgba(215, 168, 110, 0.3);
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+#agendarBtn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 35px rgba(215, 168, 110, 0.5);
+    background: linear-gradient(145deg, #e2bc82, #c49e6a);
+}
+
+#agendarBtn:active {
+    transform: scale(0.96);
+    box-shadow: 0 4px 15px rgba(215, 168, 110, 0.2);
+}
+
+#agendarBtn::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+
+#agendarBtn:hover::after {
+    opacity: 1;
+}
+
+/* ===== ANIMACIÓN DE ENTRADA ===== */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(40px) scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Aplicar animación a todos los elementos (excepto body) */
+.imagen-cita,
+h1,
+.label-banner,
+#nombreInput,
+#fechaInput,
+#horaInput,
+#servicioInput,
+#agendarBtn {
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+/* Pequeño retraso para cada elemento */
+.label-banner { animation-delay: 0.05s; }
+#nombreInput { animation-delay: 0.1s; }
+#fechaInput { animation-delay: 0.15s; }
+#horaInput { animation-delay: 0.2s; }
+#servicioInput { animation-delay: 0.25s; }
+#agendarBtn { animation-delay: 0.3s; }
+
+/* ============================================================
+   RESPONSIVE - PARA TODOS LOS DISPOSITIVOS
+   ============================================================ */
+
+/* Pantallas muy pequeñas (iPhone SE, Galaxy Fold, etc.) */
+@media (max-width: 375px) {
+    body { padding: 12px; }
+
+    .imagen-cita {
+        width: 80px;
+        height: 80px;
+        border-width: 3px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+        letter-spacing: 1.5px;
+        margin-bottom: 16px;
+    }
+
+    .label-banner {
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+        max-width: 100%;
+    }
+
+    #nombreInput,
+    #servicioInput {
+        padding: 11px 16px;
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+        max-width: 100%;
+    }
+
+    #fechaInput,
+    #horaInput {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        margin-bottom: 14px;
+        max-width: 100%;
+    }
+
+    #agendarBtn {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        letter-spacing: 1.5px;
+        margin-top: 4px;
+        max-width: 100%;
+    }
+}
+
+/* Teléfonos pequeños a medianos (iPhone 6/7/8, Android) */
+@media (min-width: 376px) and (max-width: 480px) {
+    body { padding: 16px; }
+
+    .imagen-cita {
+        width: 100px;
+        height: 100px;
+        border-width: 3px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+        margin-bottom: 18px;
+    }
+
+    #nombreInput,
+    #servicioInput {
+        padding: 13px 18px;
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        max-width: 100%;
+    }
+
+    #fechaInput,
+    #horaInput {
+        padding: 12px 18px;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+        max-width: 100%;
+    }
+
+    #agendarBtn {
+        padding: 14px 20px;
+        font-size: 1rem;
+        letter-spacing: 2px;
+        max-width: 100%;
+    }
+
+    .label-banner {
+        max-width: 100%;
+    }
+}
+
+/* Teléfonos grandes y tablets pequeñas (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+    body { padding: 20px; }
+
+    .imagen-cita {
+        width: 120px;
+        height: 120px;
+    }
+
+    h1 {
+        font-size: 2rem;
+        letter-spacing: 2.5px;
+        margin-bottom: 18px;
+    }
+
+    #nombreInput,
+    #servicioInput {
+        padding: 14px 20px;
+        font-size: 0.95rem;
+        margin-bottom: 13px;
+        max-width: 400px;
+    }
+
+    #fechaInput,
+    #horaInput {
+        padding: 13px 20px;
+        font-size: 1rem;
+        margin-bottom: 17px;
+        max-width: 400px;
+    }
+
+    #agendarBtn {
+        padding: 15px 24px;
+        font-size: 1rem;
+        letter-spacing: 2.5px;
+        max-width: 400px;
+    }
+
+    .label-banner {
+        max-width: 400px;
+    }
+}
+
+/* Tablets grandes y pantallas medianas (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .imagen-cita {
+        width: 140px;
+        height: 140px;
+    }
+
+    h1 {
+        font-size: 2.6rem;
+    }
+
+    #nombreInput,
+    #servicioInput {
+        font-size: 1rem;
+        padding: 15px 22px;
+        max-width: 480px;
+    }
+
+    #fechaInput,
+    #horaInput {
+        font-size: 1.1rem;
+        padding: 14px 22px;
+        max-width: 480px;
+    }
+
+    #agendarBtn {
+        font-size: 1.1rem;
+        padding: 16px 28px;
+        max-width: 480px;
+    }
+
+    .label-banner {
+        max-width: 480px;
+    }
+}
+
+/* Pantallas grandes (1025px en adelante) - estilos base */
+@media (min-width: 1025px) {
+    .imagen-cita {
+        width: 130px;
+        height: 130px;
+    }
+
+    h1 {
+        font-size: 2.4rem;
+    }
+
+    #nombreInput,
+    #servicioInput {
+        font-size: 1rem;
+        padding: 15px 22px;
+        max-width: 440px;
+    }
+
+    #fechaInput,
+    #horaInput {
+        font-size: 1.1rem;
+        padding: 14px 22px;
+        max-width: 440px;
+    }
+
+    #agendarBtn {
+        font-size: 1.1rem;
+        padding: 16px 28px;
+        max-width: 440px;
+    }
+
+    .label-banner {
+        max-width: 440px;
+    }
+}
+
+/* Ajuste para dispositivos con altura muy pequeña (ej. paisaje en móvil) */
+@media (max-height: 700px) and (orientation: landscape) {
+    body { padding: 10px 20px; }
+
+    .imagen-cita {
+        width: 60px;
+        height: 60px;
+        border-width: 2px;
+        margin-bottom: 2px;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+        letter-spacing: 1.5px;
+    }
+
+    .label-banner {
+        font-size: 0.65rem;
+        margin-bottom: 2px;
+    }
+
+    #nombreInput,
+    #servicioInput {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+        max-width: 500px;
+    }
+
+    #fechaInput,
+    #horaInput {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+        max-width: 500px;
+    }
+
+    #agendarBtn {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        letter-spacing: 1.5px;
+        margin-top: 4px;
+        max-width: 500px;
+    }
+
+    .label-banner {
+        max-width: 500px;
+    }
+}
