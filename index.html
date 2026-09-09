@@ -7,20 +7,41 @@
     <link rel="stylesheet" href="estilo.css" />
 </head>
 <body>
-    <img src="https://www.professionalbarber.shop/wp-content/uploads/2023/08/shutterstock_1647990784-1.png" alt="Imagen de cita" class="imagen-cita" />
-    <h1>AGENDA TU CITA</h1>
+    <!-- ===== CONTENEDOR PRINCIPAL (formulario + galería) ===== -->
+    <div id="contenedor-principal">
+        <!-- FORMULARIO (visible por defecto) -->
+        <div id="formulario">
+            <img src="https://www.professionalbarber.shop/wp-content/uploads/2023/08/shutterstock_1647990784-1.png" alt="Imagen de cita" class="imagen-cita" />
+            <h1>AGENDA TU CITA</h1>
 
-    <input type="text" id="nombreInput" placeholder="Nombre completo..." required />
+            <input type="text" id="nombreInput" placeholder="Nombre completo..." required />
+            <label class="label-banner" for="fechaInput">📅 Fecha</label>
+            <input type="date" id="fechaInput" required />
+            <label class="label-banner" for="horaInput">🕒 Hora</label>
+            <input type="time" id="horaInput" required />
+            <input type="text" id="servicioInput" placeholder="Servicio (ej. Corte + Barba)..." />
+            <button id="agendarBtn">Agendar</button>
+        </div>
 
-    <input type="text" id="servicioInput" placeholder="Servicio (ej. Corte + Barba)..." />
+        <!-- GALERÍA DE FOTOS (OCULTA POR DEFECTO) -->
+        <div id="galeria-container">
+            <h2 class="galeria-titulo">📸 Fotos de nuestros cortes</h2>
+            <div class="galeria-grid">
+                <img src="https://www.dropbox.com/scl/fi/w7ydskjve2jjgtn7qchv0/Corte-1.jpg?rlkey=n6736d759mwznoy92smifzjvm&st=16y86by4&raw=1" alt="Corte 1" class="galeria-foto" />
+                <img src="" alt="Corte 2" class="galeria-foto" />
+                <img src="" alt="Corte 3" class="galeria-foto" />
+                <img src="" alt="Corte 4" class="galeria-foto" />
+                <img src="" alt="Corte 5" class="galeria-foto" />
+                <img src="" alt="Corte 6" class="galeria-foto" />
+                <img src="" alt="Corte 7" class="galeria-foto" />
+                <img src="" alt="Corte 8" class="galeria-foto" />
+                <img src="" alt="Corte 9" class="galeria-foto" />
+            </div>
+        </div>
+    </div>
 
-    <label class="label-banner" for="fechaInput">📅 Fecha</label>
-    <input type="date" id="fechaInput" required />
-
-    <label class="label-banner" for="horaInput">🕒 Hora</label>
-    <input type="time" id="horaInput" required />
-
-    <button id="agendarBtn">Agendar</button>
+    <!-- BOTÓN "VER MÁS" (siempre visible) -->
+    <button id="button2">Ver más</button>
 
     <script src="script.js"></script>
 </body>
