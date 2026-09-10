@@ -599,7 +599,7 @@ function sincronizarBotonFlotante() {
         boton.setAttribute('aria-expanded', 'true');
     } else {
         boton.classList.remove('flotante');
-        boton.textContent = 'Ver cortes';
+        boton.textContent = 'Ver Barber';
         boton.setAttribute('aria-label', 'Ver cortes');
         boton.setAttribute('title', 'Ver cortes');
         boton.setAttribute('aria-expanded', 'false');
