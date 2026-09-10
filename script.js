@@ -35,6 +35,28 @@ function ajustarResponsive() {
 }
 
 // ============================================================
+//  CONFIGURACIÓN GLOBAL DEL FLUJO
+// ============================================================
+
+const CONFIG = {
+    // Segundos que el cliente espera a que el barbero confirme
+    ESPERA_CONFIRMACION: 300, // 5 minutos
+
+    // true  -> Buena/Mala se activan al llegar la hora de la cita
+    // false -> se activan en cuanto el barbero confirma
+    BLOQUEAR_HASTA_LA_CITA: true,
+
+    // Notas que se envían al WhatsApp del barbero
+    MENSAJE_BUENA: '⭐ *Excelente servicio*',
+    MENSAJE_MALA:  '⚠️ *Mal servicio*',
+
+    // Horario de atención (para la pantalla de "Estamos cerrados")
+    HORA_APERTURA_MIN: 9 * 60,          // 09:00
+    HORA_CIERRE_MIN:   21 * 60 + 10,    // 21:10
+    MOSTRAR_PREAGENDA: true
+};
+
+// ============================================================
 //  UTILIDADES DE TELÉFONO
 // ============================================================
 
@@ -53,6 +75,31 @@ function formatearNumeroBonito(numero) {
         return n.slice(0, 3) + ' ' + n.slice(3, 6) + ' ' + n.slice(6);
     }
     return n;
+}
+
+function pad2(n) {
+    return String(n).padStart(2, '0');
+}
+
+function formatoMMSS(segundos) {
+    const s = Math.max(0, Math.floor(segundos));
+    return pad2(Math.floor(s / 60)) + ':' + pad2(s % 60);
+}
+
+function formatoCuentaLarga(ms) {
+    let t = Math.max(0, Math.floor(ms / 1000));
+    const d = Math.floor(t / 86400); t -= d * 86400;
+    const h = Math.floor(t / 3600);  t -= h * 3600;
+    const m = Math.floor(t / 60);
+    const s = t - m * 60;
+    return (d > 0 ? d + 'd ' : '') + pad2(h) + ':' + pad2(m) + ':' + pad2(s);
+}
+
+function fechaBonita(date, hora) {
+    const txt = date.toLocaleDateString('es-MX', {
+        weekday: 'long', day: 'numeric', month: 'long'
+    });
+    return txt.charAt(0).toUpperCase() + txt.slice(1) + ' • ' + hora + ' hrs';
 }
 
 // ============================================================
@@ -99,13 +146,28 @@ function mostrarToast(mensaje, tipo) {
 }
 
 // ============================================================
+//  ESTADO GLOBAL DE LA CITA
+// ============================================================
+
+let barberoActual = { nombre: '', whatsapp: '', foto: '' };
+let citaActual    = null;
+
+let timerConfirmacion = null;
+let timerCita         = null;
+let restanteConfirmacion = 0;
+let seguimientoActivo = false;
+
+// ============================================================
 //  MODAL DE CITA · Abrir, cerrar y rellenar con el barbero
 // ============================================================
 
-let barberoActual = { nombre: '', whatsapp: '' };
-
 function abrirModalCita(perfil) {
     if (!perfil) return;
+
+    if (seguimientoActivo) {
+        mostrarToast('Ya tienes una cita en proceso 💈', 'error');
+        return;
+    }
 
     const nombreEl = perfil.querySelector('.name');
     const numeroEl = perfil.querySelector('.Whatsapp');
@@ -120,7 +182,11 @@ function abrirModalCita(perfil) {
         return;
     }
 
-    barberoActual = { nombre: nombre, whatsapp: whatsapp };
+    barberoActual = {
+        nombre:   nombre,
+        whatsapp: whatsapp,
+        foto:     fotoEl ? fotoEl.src : ''
+    };
 
     const modal          = document.getElementById('modal-cita');
     const elNombre       = document.getElementById('barberoNombre');
@@ -133,7 +199,6 @@ function abrirModalCita(perfil) {
 
     if (!modal) return;
 
-    // Rellenar con los datos del barbero elegido
     if (elNombre) elNombre.textContent = nombre;
     if (elWhats)  elWhats.textContent  = formatearNumeroBonito(whatsapp);
     if (elFoto && fotoEl) {
@@ -141,25 +206,22 @@ function abrirModalCita(perfil) {
         elFoto.alt = nombre;
     }
 
-    // Limpiar formulario
     if (inputNombre)   inputNombre.value   = '';
     if (inputServicio) inputServicio.value = '';
     if (inputFecha)    inputFecha.value    = '';
     if (inputHora)     inputHora.value     = '';
 
-    // Fecha mínima: hoy
     if (inputFecha) {
         const hoy = new Date();
         const yyyy = hoy.getFullYear();
-        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-        const dd = String(hoy.getDate()).padStart(2, '0');
+        const mm = pad2(hoy.getMonth() + 1);
+        const dd = pad2(hoy.getDate());
         inputFecha.min = `${yyyy}-${mm}-${dd}`;
     }
 
-    // Mostrar modal
     modal.classList.add('activo');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    document.body.classList.add('sin-scroll');
 
     setTimeout(function () {
         if (inputNombre) inputNombre.focus({ preventScroll: true });
@@ -171,12 +233,16 @@ function cerrarModalCita() {
     if (!modal) return;
     modal.classList.remove('activo');
     modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
+
+    // Solo liberamos scroll si el seguimiento no está activo
+    if (!seguimientoActivo) {
+        document.body.classList.remove('sin-scroll');
+    }
 }
 
 function inicializarModalCita() {
-    const modal      = document.getElementById('modal-cita');
-    const cerrarBtn  = document.getElementById('cerrarModal');
+    const modal     = document.getElementById('modal-cita');
+    const cerrarBtn = document.getElementById('cerrarModal');
     if (!modal) return;
 
     if (cerrarBtn) cerrarBtn.addEventListener('click', cerrarModalCita);
@@ -186,7 +252,7 @@ function inicializarModalCita() {
     });
 
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modal.classList.contains('activo')) {
+        if (e.key === 'Escape' && modal.classList.contains('activo') && !seguimientoActivo) {
             cerrarModalCita();
         }
     });
@@ -211,7 +277,6 @@ function inicializarPerfiles() {
             });
         }
 
-        // Clic en cualquier parte del perfil también funciona
         perfil.addEventListener('click', function (e) {
             if (e.target.closest('.btn')) return;
             abrirModalCita(perfil);
@@ -220,24 +285,21 @@ function inicializarPerfiles() {
 }
 
 // ============================================================
-//  CIERRE AUTOMÁTICO DESPUÉS DE LAS 9:10 PM (PRE-AGENDA)
+//  PRE-AGENDA · Cierre automático después de las 21:10
 // ============================================================
-
-const HORA_CIERRE_H = 21;
-const HORA_CIERRE_M = 10;
 
 let preagendaDesbloqueada = false;
 let preagendaIntervalo = null;
 
 function estaCerrado() {
     const ahora = new Date();
-    const minAhora  = ahora.getHours() * 60 + ahora.getMinutes();
-    const minCierre = HORA_CIERRE_H * 60 + HORA_CIERRE_M;
-    return minAhora >= minCierre;
+    const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+    return minAhora >= CONFIG.HORA_CIERRE_MIN || minAhora < CONFIG.HORA_APERTURA_MIN;
 }
 
 function aplicarEstadoCierre() {
     if (preagendaDesbloqueada) return;
+    if (!CONFIG.MOSTRAR_PREAGENDA) return;
     document.body.classList.toggle('cerrado', estaCerrado());
 }
 
@@ -253,27 +315,32 @@ function inicializarPreagenda() {
         btnPre.addEventListener('click', function () {
             preagendaDesbloqueada = true;
             document.body.classList.remove('cerrado');
+            document.body.classList.remove('sin-scroll');
             const equipo = document.getElementById('equipo');
             if (equipo) equipo.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
-    } else {
-        console.warn('No se encontró el botón con id="preagendarBtn"');
     }
 }
 
 // ============================================================
-//  ENVIAR A WHATSAPP DEL BARBERO DEL MODAL + PDF
+//  ENVIAR A WHATSAPP DEL BARBERO + PDF + SEGUIMIENTO BLOQUEANTE
 // ============================================================
 
-function enviarWhatsApp() {
+async function enviarWhatsApp() {
+    if (seguimientoActivo) {
+        mostrarToast('Ya tienes una cita en proceso 💈', 'error');
+        cerrarModalCita();
+        return;
+    }
+
     const inputNombre   = document.getElementById('nombreInput');
     const inputFecha    = document.getElementById('fechaInput');
     const inputHora     = document.getElementById('horaInput');
     const inputServicio = document.getElementById('servicioInput');
 
-    const nombre   = inputNombre ? inputNombre.value.trim() : '';
-    const fechaRaw = inputFecha  ? inputFecha.value          : '';
-    const horaRaw  = inputHora   ? inputHora.value           : '';
+    const nombre   = inputNombre   ? inputNombre.value.trim()   : '';
+    const fechaRaw = inputFecha    ? inputFecha.value           : '';
+    const horaRaw  = inputHora     ? inputHora.value            : '';
     const servicio = inputServicio ? inputServicio.value.trim() : '';
 
     if (!nombre || !fechaRaw || !horaRaw) {
@@ -289,60 +356,67 @@ function enviarWhatsApp() {
         return;
     }
 
+    // Validar que la fecha+hora sea futura
+    const fechaHoraCita = new Date(fechaRaw + 'T' + horaRaw + ':00');
+    if (isNaN(fechaHoraCita.getTime()) || fechaHoraCita.getTime() < Date.now() - 60000) {
+        mostrarToast('La fecha y hora deben ser futuras', 'error');
+        return;
+    }
+
     const numero        = barberoActual.whatsapp;
     const nombreBarbero = barberoActual.nombre || 'Barber Shop';
 
-    // Formatear fecha
     const fechaObj = new Date(fechaRaw + 'T00:00:00');
     const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
+        day: '2-digit', month: '2-digit', year: 'numeric'
     });
 
-    // Formatear hora
-    const horaObj = new Date(`2000-01-01T${horaRaw}:00`);
+    const horaObj = new Date('2000-01-01T' + horaRaw + ':00');
     const horaFormateada = horaObj.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
+        hour: '2-digit', minute: '2-digit', hour12: true
     });
 
-    // Mensaje
-    let mensaje  = `📌 *NUEVA CITA DE BARBERÍA*\n`;
-    mensaje += `💈 *Barbero:* ${nombreBarbero}\n`;
-    mensaje += `👤 *Nombre:* ${nombre}\n`;
-    mensaje += `📅 *Fecha:* ${fechaFormateada}\n`;
-    mensaje += `🕒 *Hora:* ${horaFormateada}\n`;
-    if (servicio !== '') {
-        mensaje += `✂️ *Servicio:* ${servicio}\n`;
-    }
-    mensaje += `\n¡Esperamos tu visita! ✨`;
+    // Guardamos la cita en memoria para el seguimiento
+    citaActual = {
+        nombre:   nombre,
+        servicio: servicio,
+        fecha:    fechaRaw,
+        hora:     horaRaw,
+        barbero:  nombreBarbero,
+        whatsapp: numero,
+        timestamp: fechaHoraCita.getTime(),
+        fechaFormateada: fechaFormateada,
+        horaFormateada:  horaFormateada
+    };
 
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+    // ------------------------------------------------------------
+    // 1) Abrir WhatsApp del barbero con la solicitud
+    // ------------------------------------------------------------
+    let mensaje  = '📌 *NUEVA CITA DE BARBERÍA*\n';
+    mensaje += '💈 *Barbero:* ' + nombreBarbero + '\n';
+    mensaje += '👤 *Nombre:* '  + nombre + '\n';
+    mensaje += '📅 *Fecha:* '   + fechaFormateada + '\n';
+    mensaje += '🕒 *Hora:* '    + horaFormateada + '\n';
+    if (servicio !== '') mensaje += '✂️ *Servicio:* ' + servicio + '\n';
+    mensaje += '\n¡Esperamos tu visita! ✨';
+
+    const url = 'https://wa.me/' + numero + '?text=' + encodeURIComponent(mensaje);
     window.open(url, '_blank');
 
-    // Datos para el PDF
+    // ------------------------------------------------------------
+    // 2) Preguntar por el PDF (antes de bloquear la pantalla)
+    // ------------------------------------------------------------
     const ahora = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-
     const generado = ahora.toLocaleString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
     });
-
-    const codigo = 'CITA-'
-        + ahora.getFullYear()
-        + pad(ahora.getMonth() + 1)
-        + pad(ahora.getDate())
-        + '-'
-        + pad(ahora.getHours())
-        + pad(ahora.getMinutes());
+    const codigo = 'CITA-' +
+        ahora.getFullYear() +
+        pad2(ahora.getMonth() + 1) +
+        pad2(ahora.getDate()) + '-' +
+        pad2(ahora.getHours()) +
+        pad2(ahora.getMinutes());
 
     const datosPDF = {
         nombre:       nombre,
@@ -354,143 +428,150 @@ function enviarWhatsApp() {
         generado:     generado,
         codigo:       codigo,
         fechaArchivo: fechaRaw,
-        horaArchivo:  pad(ahora.getHours()) + pad(ahora.getMinutes())
+        horaArchivo:  pad2(ahora.getHours()) + pad2(ahora.getMinutes())
     };
 
-    preguntarDescargaComprobante(datosPDF);
+    await preguntarDescargaComprobante(datosPDF);
 
-    // Cerrar modal y limpiar
-    cerrarModalCita();
-
+    // ------------------------------------------------------------
+    // 3) Limpiar inputs, cerrar modal y arrancar seguimiento
+    // ------------------------------------------------------------
     if (inputNombre)   inputNombre.value   = '';
     if (inputFecha)    inputFecha.value    = '';
     if (inputHora)     inputHora.value     = '';
     if (inputServicio) inputServicio.value = '';
+
+    cerrarModalCita();
+    iniciarSeguimiento();
 }
 
 // ============================================================
-//  MODAL: ¿DESCARGAR COMPROBANTE?
+//  MODAL: ¿DESCARGAR COMPROBANTE? (Promise)
 // ============================================================
 
 function preguntarDescargaComprobante(datosPDF) {
-    if (!document.getElementById('modal-comprobante-styles')) {
-        const style = document.createElement('style');
-        style.id = 'modal-comprobante-styles';
-        style.textContent = `
-            #modal-comprobante-overlay {
-                position: fixed; inset: 0; z-index: 10000;
-                display: flex; align-items: center; justify-content: center;
-                padding: 20px; background: rgba(0, 0, 0, .78);
-                backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-                opacity: 0; visibility: hidden;
-                transition: opacity .3s ease, visibility .3s ease;
-                font-family: inherit;
-            }
-            #modal-comprobante-overlay.activo { opacity: 1; visibility: visible; }
-            .modal-comprobante {
-                width: 100%; max-width: 400px;
-                background: #ffffff; border-radius: 16px;
-                padding: 28px 24px 22px; text-align: center;
-                box-shadow: 0 25px 60px rgba(0, 0, 0, .5);
-                transform: scale(.85) translateY(20px);
-                transition: transform .35s cubic-bezier(.2, .9, .3, 1.2);
-                color: #1f2937;
-            }
-            #modal-comprobante-overlay.activo .modal-comprobante {
-                transform: scale(1) translateY(0);
-            }
-            .modal-comprobante .icono {
-                width: 70px; height: 70px; margin: 0 auto 16px;
-                display: flex; align-items: center; justify-content: center;
-                border-radius: 50%;
-                background: linear-gradient(135deg, #f5d488, #c6a05a);
-                font-size: 2rem;
-                box-shadow: 0 8px 22px rgba(198, 160, 90, .45);
-            }
-            .modal-comprobante h2 {
-                margin: 0 0 10px; font-size: 1.25rem;
-                font-weight: 700; color: #111827;
-            }
-            .modal-comprobante p {
-                margin: 0 0 22px; font-size: .95rem;
-                line-height: 1.5; color: #4b5563;
-            }
-            .modal-comprobante .acciones { display: flex; gap: 10px; }
-            .modal-comprobante button {
-                flex: 1; padding: 12px 16px; border: none;
-                border-radius: 10px; font-size: .95rem; font-weight: 700;
-                cursor: pointer; font-family: inherit;
-                transition: transform .15s ease, box-shadow .2s ease, background .2s ease, filter .2s ease;
-                -webkit-tap-highlight-color: transparent;
-            }
-            .modal-comprobante .btn-si {
-                background: linear-gradient(135deg, #111827, #1f2937);
-                color: #ffffff;
-                box-shadow: 0 6px 16px rgba(17, 24, 39, .35);
-            }
-            .modal-comprobante .btn-si:hover { filter: brightness(1.15); transform: translateY(-1px); }
-            .modal-comprobante .btn-si:active { transform: scale(.97); }
-            .modal-comprobante .btn-no { background: #f3f4f6; color: #4b5563; }
-            .modal-comprobante .btn-no:hover { background: #e5e7eb; }
-            .modal-comprobante .btn-no:active { transform: scale(.97); }
-            body.modal-comprobante-abierto { overflow: hidden; }
-        `;
-        document.head.appendChild(style);
-    }
+    return new Promise(function (resolve) {
 
-    const anterior = document.getElementById('modal-comprobante-overlay');
-    if (anterior) anterior.remove();
+        if (!document.getElementById('modal-comprobante-styles')) {
+            const style = document.createElement('style');
+            style.id = 'modal-comprobante-styles';
+            style.textContent = `
+                #modal-comprobante-overlay {
+                    position: fixed; inset: 0; z-index: 10000;
+                    display: flex; align-items: center; justify-content: center;
+                    padding: 20px; background: rgba(0, 0, 0, .78);
+                    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+                    opacity: 0; visibility: hidden;
+                    transition: opacity .3s ease, visibility .3s ease;
+                    font-family: inherit;
+                }
+                #modal-comprobante-overlay.activo { opacity: 1; visibility: visible; }
+                .modal-comprobante {
+                    width: 100%; max-width: 400px;
+                    background: #ffffff; border-radius: 16px;
+                    padding: 28px 24px 22px; text-align: center;
+                    box-shadow: 0 25px 60px rgba(0, 0, 0, .5);
+                    transform: scale(.85) translateY(20px);
+                    transition: transform .35s cubic-bezier(.2, .9, .3, 1.2);
+                    color: #1f2937;
+                }
+                #modal-comprobante-overlay.activo .modal-comprobante {
+                    transform: scale(1) translateY(0);
+                }
+                .modal-comprobante .icono {
+                    width: 70px; height: 70px; margin: 0 auto 16px;
+                    display: flex; align-items: center; justify-content: center;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, #f5d488, #c6a05a);
+                    font-size: 2rem;
+                    box-shadow: 0 8px 22px rgba(198, 160, 90, .45);
+                }
+                .modal-comprobante h2 {
+                    margin: 0 0 10px; font-size: 1.25rem;
+                    font-weight: 700; color: #111827;
+                }
+                .modal-comprobante p {
+                    margin: 0 0 22px; font-size: .95rem;
+                    line-height: 1.5; color: #4b5563;
+                }
+                .modal-comprobante .acciones { display: flex; gap: 10px; }
+                .modal-comprobante button {
+                    flex: 1; padding: 12px 16px; border: none;
+                    border-radius: 10px; font-size: .95rem; font-weight: 700;
+                    cursor: pointer; font-family: inherit;
+                    transition: transform .15s ease, box-shadow .2s ease, background .2s ease, filter .2s ease;
+                    -webkit-tap-highlight-color: transparent;
+                }
+                .modal-comprobante .btn-si {
+                    background: linear-gradient(135deg, #111827, #1f2937);
+                    color: #ffffff;
+                    box-shadow: 0 6px 16px rgba(17, 24, 39, .35);
+                }
+                .modal-comprobante .btn-si:hover { filter: brightness(1.15); transform: translateY(-1px); }
+                .modal-comprobante .btn-si:active { transform: scale(.97); }
+                .modal-comprobante .btn-no { background: #f3f4f6; color: #4b5563; }
+                .modal-comprobante .btn-no:hover { background: #e5e7eb; }
+                .modal-comprobante .btn-no:active { transform: scale(.97); }
+                body.modal-comprobante-abierto { overflow: hidden; }
+            `;
+            document.head.appendChild(style);
+        }
 
-    const overlay = document.createElement('div');
-    overlay.id = 'modal-comprobante-overlay';
-    overlay.innerHTML = `
-        <div class="modal-comprobante" role="dialog" aria-modal="true" aria-labelledby="modal-comprobante-titulo">
-            <div class="icono">🧾</div>
-            <h2 id="modal-comprobante-titulo">¿Descargar comprobante?</h2>
-            <p>Tu cita fue registrada. ¿Deseas descargar el comprobante en PDF con todos los detalles?</p>
-            <div class="acciones">
-                <button type="button" class="btn-no" id="modal-comprobante-no">Ahora no</button>
-                <button type="button" class="btn-si" id="modal-comprobante-si">Sí, descargar</button>
+        const anterior = document.getElementById('modal-comprobante-overlay');
+        if (anterior) anterior.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'modal-comprobante-overlay';
+        overlay.innerHTML = `
+            <div class="modal-comprobante" role="dialog" aria-modal="true" aria-labelledby="modal-comprobante-titulo">
+                <div class="icono">🧾</div>
+                <h2 id="modal-comprobante-titulo">¿Descargar comprobante?</h2>
+                <p>Tu cita fue registrada. ¿Deseas descargar el comprobante en PDF con todos los detalles?</p>
+                <div class="acciones">
+                    <button type="button" class="btn-no" id="modal-comprobante-no">Ahora no</button>
+                    <button type="button" class="btn-si" id="modal-comprobante-si">Sí, descargar</button>
+                </div>
             </div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-    document.body.classList.add('modal-comprobante-abierto');
+        `;
+        document.body.appendChild(overlay);
+        document.body.classList.add('modal-comprobante-abierto');
 
-    requestAnimationFrame(() => overlay.classList.add('activo'));
+        requestAnimationFrame(() => overlay.classList.add('activo'));
 
-    function cerrarModal() {
-        overlay.classList.remove('activo');
-        document.body.classList.remove('modal-comprobante-abierto');
-        setTimeout(() => overlay.remove(), 350);
-        document.removeEventListener('keydown', manejarTecla);
-    }
+        function cerrarModal(respuesta) {
+            overlay.classList.remove('activo');
+            document.body.classList.remove('modal-comprobante-abierto');
+            setTimeout(() => overlay.remove(), 350);
+            document.removeEventListener('keydown', manejarTecla);
+            resolve(respuesta);
+        }
 
-    function confirmarDescarga() {
-        cerrarModal();
-        generarPDFCita(datosPDF);
-    }
+        function confirmarDescarga() {
+            cerrarModal(true);
+            generarPDFCita(datosPDF);
+        }
 
-    function manejarTecla(e) {
-        if (e.key === 'Escape') cerrarModal();
-        if (e.key === 'Enter')  confirmarDescarga();
-    }
+        function manejarTecla(e) {
+            if (e.key === 'Escape') cerrarModal(false);
+            if (e.key === 'Enter')  confirmarDescarga();
+        }
 
-    overlay.querySelector('#modal-comprobante-si').addEventListener('click', confirmarDescarga);
-    overlay.querySelector('#modal-comprobante-no').addEventListener('click', cerrarModal);
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) cerrarModal();
+        overlay.querySelector('#modal-comprobante-si').addEventListener('click', confirmarDescarga);
+        overlay.querySelector('#modal-comprobante-no').addEventListener('click', function () { cerrarModal(false); });
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) cerrarModal(false);
+        });
+        document.addEventListener('keydown', manejarTecla);
+
+        setTimeout(function () {
+            const btnSi = overlay.querySelector('#modal-comprobante-si');
+            if (btnSi) btnSi.focus();
+        }, 320);
     });
-    document.addEventListener('keydown', manejarTecla);
-
-    setTimeout(() => {
-        const btnSi = overlay.querySelector('#modal-comprobante-si');
-        if (btnSi) btnSi.focus();
-    }, 320);
 }
 
 // ============================================================
-//  ESTILOS DEL BOTÓN FLOTANTE CIRCULAR
+//  ESTILOS DEL BOTÓN FLOTANTE CIRCULAR (Ver cortes)
 // ============================================================
 
 function crearEstilosBotonFlotante() {
@@ -611,6 +692,8 @@ function sincronizarBotonFlotante() {
 // ============================================================
 
 function toggleContenido() {
+    if (seguimientoActivo) return; // No permitir si hay cita en curso
+
     const galeria = document.getElementById('galeria-container');
     const boton   = document.getElementById('button2');
     if (!galeria || !boton) return;
@@ -849,6 +932,8 @@ function crearLightbox() {
 }
 
 function abrirLightbox(indice) {
+    if (seguimientoActivo) return;
+
     lightboxImagenes = obtenerImagenesGaleria();
     if (!lightboxImagenes.length) return;
 
@@ -904,7 +989,7 @@ function cambiarImagen(delta) {
 function actualizarContador() {
     const contador = document.getElementById('lightbox-contador');
     if (!contador) return;
-    contador.textContent = `${lightboxIndex + 1} / ${lightboxImagenes.length}`;
+    contador.textContent = (lightboxIndex + 1) + ' / ' + lightboxImagenes.length;
 }
 
 function cerrarLightbox() {
@@ -923,6 +1008,8 @@ function cerrarLightbox() {
 }
 
 document.addEventListener('click', function (e) {
+    if (seguimientoActivo) return;
+
     const img = e.target.closest('#galeria-container img');
     if (!img) return;
 
@@ -1097,10 +1184,10 @@ async function generarPDFCita(datos) {
         doc.text('Comprobante generado automáticamente desde el sitio web de reservas.',
                  centro, alto - 20, { align: 'center' });
 
-        const archivo = 'Cita_'
-            + limpiarTextoArchivo(datos.nombre) + '_'
-            + datos.fechaArchivo + '_'
-            + datos.horaArchivo + '.pdf';
+        const archivo = 'Cita_' +
+            limpiarTextoArchivo(datos.nombre) + '_' +
+            datos.fechaArchivo + '_' +
+            datos.horaArchivo + '.pdf';
 
         doc.save(archivo);
         return true;
@@ -1109,6 +1196,250 @@ async function generarPDFCita(datos) {
         console.error('No se pudo generar el PDF de la cita:', error);
         alert('⚠️ No se pudo generar el comprobante. Revisa tu conexión a internet e inténtalo de nuevo.');
         return false;
+    }
+}
+
+// ============================================================
+//  SEGUIMIENTO BLOQUEANTE · Overlay a pantalla completa
+// ============================================================
+
+function iniciarSeguimiento() {
+    if (!citaActual) return;
+
+    seguimientoActivo = true;
+
+    // Bloqueo total
+    document.body.classList.add('sin-scroll', 'bloqueado');
+
+    const overlay = document.getElementById('seguimiento-overlay');
+    if (!overlay) return;
+
+    // Rellenar datos del barbero
+    const segFoto     = document.getElementById('segFoto');
+    const segNombre   = document.getElementById('segNombre');
+    const segNombre2  = document.getElementById('segNombre2');
+
+    if (segFoto)    segFoto.src = barberoActual.foto || '';
+    if (segNombre)  segNombre.textContent  = barberoActual.nombre;
+    if (segNombre2) segNombre2.textContent = barberoActual.nombre;
+
+    // Mostrar overlay
+    overlay.classList.add('activo');
+    overlay.setAttribute('aria-hidden', 'false');
+
+    // Arrancar en el paso 1
+    mostrarPasoSeguimiento('confirmacion');
+    iniciarCuentaConfirmacion();
+}
+
+function mostrarPasoSeguimiento(paso) {
+    const pasoConfirmacion = document.getElementById('pasoConfirmacion');
+    const pasoCita         = document.getElementById('pasoCita');
+    const pasoGracias      = document.getElementById('pasoGracias');
+    if (!pasoConfirmacion) return;
+
+    pasoConfirmacion.classList.toggle('oculto', paso !== 'confirmacion');
+    pasoCita.classList.toggle('oculto',         paso !== 'cita');
+    pasoGracias.classList.toggle('oculto',      paso !== 'gracias');
+}
+
+// ---------- PASO 1: cuenta regresiva de confirmación ----------
+
+function iniciarCuentaConfirmacion() {
+    clearInterval(timerConfirmacion);
+
+    restanteConfirmacion = CONFIG.ESPERA_CONFIRMACION;
+
+    const contador = document.getElementById('contadorConfirmacion');
+    const nota     = document.getElementById('notaConfirmacion');
+
+    if (contador) contador.textContent = formatoMMSS(restanteConfirmacion);
+    if (nota)     nota.textContent = 'Tiempo de espera para la confirmación.';
+
+    timerConfirmacion = setInterval(function () {
+        restanteConfirmacion--;
+
+        if (restanteConfirmacion <= 0) {
+            restanteConfirmacion = 0;
+            clearInterval(timerConfirmacion);
+            if (contador) contador.textContent = '00:00';
+            if (nota) nota.textContent =
+                'El tiempo terminó. Pulsa "No" para reiniciar el conteo o "Sí" si ya te confirmaron.';
+            return;
+        }
+
+        if (contador) contador.textContent = formatoMMSS(restanteConfirmacion);
+    }, 1000);
+}
+
+// ---------- PASO 2: cuenta regresiva hasta la cita ----------
+
+function obtenerFechaCita() {
+    const p = citaActual.fecha.split('-').map(Number);
+    const h = citaActual.hora.split(':').map(Number);
+    return new Date(p[0], p[1] - 1, p[2], h[0], h[1], 0, 0);
+}
+
+function iniciarCuentaCita() {
+    const fechaCita = obtenerFechaCita();
+
+    const segFechaCita  = document.getElementById('segFechaCita');
+    const btnBuena      = document.getElementById('btnBuena');
+    const btnMala       = document.getElementById('btnMala');
+    const notaCalificar = document.getElementById('notaCalificar');
+
+    if (segFechaCita) {
+        segFechaCita.textContent = fechaBonita(fechaCita, citaActual.horaFormateada || citaActual.hora);
+    }
+
+    if (btnBuena) btnBuena.disabled = true;
+    if (btnMala)  btnMala.disabled  = true;
+    if (notaCalificar) {
+        notaCalificar.textContent = CONFIG.BLOQUEAR_HASTA_LA_CITA
+            ? 'Podrás calificar cuando llegue la hora de tu cita.'
+            : '¡Ya puedes calificar tu experiencia!';
+    }
+
+    if (!CONFIG.BLOQUEAR_HASTA_LA_CITA) habilitarCalificacion();
+
+    clearInterval(timerCita);
+    actualizarCuentaCita(fechaCita);
+    timerCita = setInterval(function () {
+        actualizarCuentaCita(fechaCita);
+    }, 1000);
+}
+
+function actualizarCuentaCita(fechaCita) {
+    const contador = document.getElementById('contadorCita');
+    if (!contador) return;
+
+    const ms = fechaCita.getTime() - Date.now();
+    contador.textContent = ms > 0 ? formatoCuentaLarga(ms) : '00:00:00';
+
+    if (ms <= 0) {
+        clearInterval(timerCita);
+        if (CONFIG.BLOQUEAR_HASTA_LA_CITA) habilitarCalificacion();
+    }
+}
+
+function habilitarCalificacion() {
+    const btnBuena      = document.getElementById('btnBuena');
+    const btnMala       = document.getElementById('btnMala');
+    const notaCalificar = document.getElementById('notaCalificar');
+
+    if (btnBuena) btnBuena.disabled = false;
+    if (btnMala)  btnMala.disabled  = false;
+    if (notaCalificar) notaCalificar.textContent = '¡Ya puedes calificar tu experiencia!';
+}
+
+// ---------- PASO 2 → 3: Buena / Mala ----------
+
+function enviarCalificacion(tipo) {
+    if (!citaActual) return;
+
+    const base = tipo === 'buena' ? CONFIG.MENSAJE_BUENA : CONFIG.MENSAJE_MALA;
+
+    const texto = [
+        base,
+        'Cliente: ' + citaActual.nombre,
+        'Cita: '    + citaActual.fecha + ' ' + citaActual.hora,
+        'Barbero: ' + citaActual.barbero
+    ].join('\n');
+
+    const url = 'https://wa.me/' + citaActual.whatsapp + '?text=' + encodeURIComponent(texto);
+    const win = window.open(url, '_blank');
+
+    // Fallback si el navegador bloqueó la ventana
+    const linkWhatsManual = document.getElementById('linkWhatsManual');
+    if (!win && linkWhatsManual) {
+        linkWhatsManual.href = url;
+        linkWhatsManual.classList.remove('oculto');
+    } else if (linkWhatsManual) {
+        linkWhatsManual.classList.add('oculto');
+    }
+
+    const graciasTitulo = document.getElementById('graciasTitulo');
+    const graciasTexto  = document.getElementById('graciasTexto');
+
+    if (graciasTitulo) {
+        graciasTitulo.textContent = tipo === 'buena' ? '¡Gracias! ⭐' : 'Gracias por tu opinión';
+    }
+    if (graciasTexto) {
+        graciasTexto.textContent = tipo === 'buena'
+            ? 'Tu nota de "Excelente servicio" fue enviada al barbero por WhatsApp.'
+            : 'Tu nota de "Mal servicio" fue enviada al barbero por WhatsApp.';
+    }
+
+    mostrarPasoSeguimiento('gracias');
+}
+
+// ---------- PASO 3: finalizar y liberar la página ----------
+
+function finalizarSeguimiento() {
+    clearInterval(timerConfirmacion);
+    clearInterval(timerCita);
+    timerConfirmacion = null;
+    timerCita = null;
+
+    seguimientoActivo = false;
+    citaActual = null;
+
+    const overlay = document.getElementById('seguimiento-overlay');
+    if (overlay) {
+        overlay.classList.remove('activo');
+        overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    // Liberar la página
+    document.body.classList.remove('sin-scroll', 'bloqueado');
+
+    // Resetear pasos (por si se agenda otra cita)
+    mostrarPasoSeguimiento('confirmacion');
+
+    const contadorConfirmacion = document.getElementById('contadorConfirmacion');
+    if (contadorConfirmacion) contadorConfirmacion.textContent = formatoMMSS(CONFIG.ESPERA_CONFIRMACION);
+
+    const linkWhatsManual = document.getElementById('linkWhatsManual');
+    if (linkWhatsManual) linkWhatsManual.classList.add('oculto');
+
+    mostrarToast('Ya puedes agendar una nueva cita 💈', 'ok');
+}
+
+// ---------- Listeners del seguimiento ----------
+
+function inicializarSeguimiento() {
+    const btnNo        = document.getElementById('btnNo');
+    const btnSi        = document.getElementById('btnSi');
+    const btnBuena     = document.getElementById('btnBuena');
+    const btnMala      = document.getElementById('btnMala');
+    const btnFinalizar = document.getElementById('btnFinalizar');
+
+    if (btnNo) {
+        btnNo.addEventListener('click', function () {
+            const nota = document.getElementById('notaConfirmacion');
+            if (nota) nota.textContent = 'Aún sin confirmar. Espera un poco y vuelve a preguntar.';
+            iniciarCuentaConfirmacion();
+        });
+    }
+
+    if (btnSi) {
+        btnSi.addEventListener('click', function () {
+            clearInterval(timerConfirmacion);
+            mostrarPasoSeguimiento('cita');
+            iniciarCuentaCita();
+        });
+    }
+
+    if (btnBuena) {
+        btnBuena.addEventListener('click', function () { enviarCalificacion('buena'); });
+    }
+
+    if (btnMala) {
+        btnMala.addEventListener('click', function () { enviarCalificacion('mala'); });
+    }
+
+    if (btnFinalizar) {
+        btnFinalizar.addEventListener('click', finalizarSeguimiento);
     }
 }
 
@@ -1122,17 +1453,17 @@ function inicializarApp() {
     inicializarPreagenda();
     inicializarPerfiles();
     inicializarModalCita();
+    inicializarSeguimiento();
 
     const botonAgendar = document.getElementById('agendarBtn');
     if (botonAgendar) botonAgendar.addEventListener('click', enviarWhatsApp);
-    else console.warn('No se encontró el botón con id="agendarBtn"');
 
     const botonVerCortes = document.getElementById('button2');
     if (botonVerCortes) botonVerCortes.addEventListener('click', toggleContenido);
-    else console.warn('No se encontró el botón con id="button2"');
 
     sincronizarBotonFlotante();
 
+    // Precargar jsPDF en segundo plano
     const precargarPDF = function () {
         cargarJsPDF().catch(function () {
             console.warn('jsPDF no disponible: el PDF no se generará hasta recuperar conexión.');
