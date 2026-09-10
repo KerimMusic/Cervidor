@@ -130,6 +130,64 @@
     <button id="preagendarBtn" type="button">Pre-agendar</button>
   </div>
 
+  <!-- ============================================================
+       NUEVO: SEGUIMIENTO DE LA CITA (BLOQUEA TODA LA PÁGINA)
+       ============================================================ -->
+  <div id="seguimiento-overlay" aria-hidden="true" role="alertdialog" aria-modal="true" aria-live="assertive">
+    <div class="seg-card">
+
+      <img id="segFoto" class="seg-foto" src="" alt="Barbero" />
+
+      <!-- ---------- PASO 1: ¿EL BARBERO CONFIRMÓ? ---------- -->
+      <div id="pasoConfirmacion" class="seg-paso">
+        <h2 class="seg-titulo">¿El barbero confirmó tu cita?</h2>
+        <p class="seg-sub">Esperando respuesta de <strong id="segNombre">tu barbero</strong></p>
+
+        <div class="seg-contador" id="contadorConfirmacion">05:00</div>
+        <p class="seg-nota" id="notaConfirmacion">Tiempo de espera para la confirmación.</p>
+
+        <div class="seg-botones">
+          <button id="btnNo" class="seg-btn seg-no" type="button">No</button>
+          <button id="btnSi" class="seg-btn seg-si" type="button">Sí</button>
+        </div>
+      </div>
+
+      <!-- ---------- PASO 2: CUENTA REGRESIVA HASTA LA CITA ---------- -->
+      <div id="pasoCita" class="seg-paso oculto">
+        <h2 class="seg-titulo">¡Cita confirmada! 🎉</h2>
+        <p class="seg-sub">
+          Tu cita con <strong id="segNombre2">tu barbero</strong><br>
+          <span id="segFechaCita"></span>
+        </p>
+
+        <div class="seg-contador" id="contadorCita">00:00:00</div>
+        <p class="seg-nota">Tiempo restante para tu cita</p>
+
+        <h3 class="seg-pregunta">¿Cómo fue tu experiencia?</h3>
+        <div class="seg-botones">
+          <button id="btnMala"  class="seg-btn seg-mala"  type="button" disabled>Mala</button>
+          <button id="btnBuena" class="seg-btn seg-buena" type="button" disabled>Buena</button>
+        </div>
+        <p class="seg-nota" id="notaCalificar">Podrás calificar cuando llegue la hora de tu cita.</p>
+      </div>
+
+      <!-- ---------- PASO 3: GRACIAS ---------- -->
+      <div id="pasoGracias" class="seg-paso oculto">
+        <h2 class="seg-titulo" id="graciasTitulo">¡Gracias!</h2>
+        <p class="seg-sub" id="graciasTexto"></p>
+
+        <a id="linkWhatsManual" class="seg-link oculto" href="#" target="_blank" rel="noopener">
+          Abrir WhatsApp manualmente
+        </a>
+
+        <div class="seg-botones">
+          <button id="btnFinalizar" class="seg-btn seg-si" type="button">Finalizar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
