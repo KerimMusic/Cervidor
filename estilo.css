@@ -68,6 +68,12 @@ body {
 #galeria-container {
     width: 100%;
     max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
     transition: all 0.6s ease;
     overflow: hidden;
     max-height: 0;
@@ -236,6 +242,17 @@ h1 {
 }
 
 /* ============================================================
+   TEXTO DE WHATSAPP
+   ============================================================ */
+.Tex-tucita {
+    font-size: 12px;
+    text-align: center;
+    font-style: italic;
+    color: #fcf9f9;
+    margin: 6px 0;
+}
+
+/* ============================================================
    BOTÓN AGENDAR (dorado)
    ============================================================ */
 #agendarBtn {
@@ -289,7 +306,7 @@ h1 {
 }
 
 /* ============================================================
-   BOTÓN "VER MÁS" (mismo dorado que Agendar)
+   BOTÓN "VER MÁS"
    ============================================================ */
 #button2 {
     background: linear-gradient(145deg, #D7A86E, #b8925a);
@@ -342,7 +359,7 @@ h1 {
 }
 
 /* ============================================================
-   GALERÍA DE FOTOS (estilo Facebook)
+   GALERÍA DE FOTOS
    ============================================================ */
 .galeria-titulo {
     font-family: 'Playfair Display', serif;
@@ -365,6 +382,8 @@ h1 {
 }
 
 .galeria-foto {
+    display: block;
+    margin: 0 auto;
     width: 100%;
     max-width: 500px;
     height: auto;
@@ -372,14 +391,14 @@ h1 {
     object-fit: cover;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     background: #1a1a1a;
     border: 1px solid rgba(215, 168, 110, 0.15);
 }
 
 .galeria-foto:hover {
-    transform: scale(1.02);
-    box-shadow: 0 8px 35px rgba(215, 168, 110, 0.2);
+    transform: scale(1.03);
+    box-shadow: 0 8px 35px rgba(215, 168, 110, 0.25);
     border-color: rgba(215, 168, 110, 0.4);
 }
 
@@ -497,10 +516,110 @@ h1,
     #galeria-container.visible { margin: 10px auto; }
 }
 
-.Tex-tucita {
-  font-size: 12px;
-  text-align: center;
-  font-style: italic;
-  color: #fcf9f9;
-  margin: 6px 0;
+/* ============================================================
+   PANTALLA DE PRE-AGENDA (cierre después de las 9:10 pm)
+   ============================================================ */
+#preagenda-overlay {
+    display: none;                 /* se activa con body.cerrado */
+    position: fixed;
+    inset: 0;                      /* top/right/bottom/left: 0 */
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 16px;
+    padding: 24px;
+    background: #0a0a0a;
+    background-image: radial-gradient(circle at 50% 40%, #1a1a1a 0%, #0a0a0a 90%);
+    color: #f0e6d3;
+    overflow-y: auto;
+}
+
+#preagenda-overlay .imagen-cita {
+    width: 130px;
+    height: 130px;
+    margin-bottom: 10px;
+    animation: fadeInUp 0.8s ease forwards;
+}
+
+#preagenda-overlay h2 {
+    font-family: 'Playfair Display', serif;
+    color: #D7A86E;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 0 4px 20px rgba(215, 168, 110, 0.25);
+    max-width: 90%;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease 0.1s forwards;
+}
+
+#preagenda-overlay p {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: rgba(240, 230, 211, 0.85);
+    max-width: 420px;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease 0.2s forwards;
+}
+
+#preagenda-overlay p strong {
+    color: #D7A86E;
+    font-weight: 600;
+}
+
+#preagendarBtn {
+    margin-top: 10px;
+    background: linear-gradient(145deg, #D7A86E, #b8925a);
+    border: none;
+    border-radius: 50px;
+    padding: 16px 40px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: #0a0a0a;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 25px rgba(215, 168, 110, 0.35);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease 0.3s forwards;
+}
+
+#preagendarBtn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 35px rgba(215, 168, 110, 0.55);
+    background: linear-gradient(145deg, #e2bc82, #c49e6a);
+}
+
+#preagendarBtn:active {
+    transform: scale(0.96);
+    box-shadow: 0 4px 15px rgba(215, 168, 110, 0.25);
+}
+
+/* ============================================================
+   ESTADO CERRADO (body.cerrado)
+   ============================================================ */
+body.cerrado #contenedor-principal,
+body.cerrado #button2 {
+    display: none !important;      /* oculta TODA la página */
+}
+
+body.cerrado #preagenda-overlay {
+    display: flex;                 /* solo se ve la pantalla de pre-agenda */
+}
+
+/* Responsive del overlay de pre-agenda */
+@media (max-width: 480px) {
+    #preagenda-overlay .imagen-cita { width: 100px; height: 100px; }
+    #preagenda-overlay h2 { font-size: 1.6rem; }
+    #preagenda-overlay p { font-size: 0.9rem; }
+    #preagendarBtn { padding: 14px 32px; font-size: 1rem; letter-spacing: 2px; }
 }
