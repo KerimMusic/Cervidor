@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="estilo.css" />
 </head>
 <body>
+
     <!-- ===== CONTENEDOR PRINCIPAL (formulario + galería) ===== -->
     <div id="contenedor-principal">
+
         <!-- FORMULARIO (visible por defecto) -->
         <div id="formulario">
             <img src="https://www.dropbox.com/scl/fi/gk9ovs454q5nmxohsvfz5/Perfil.jpg?rlkey=qo2ha5it6e7pp2cpmdbgvv3h8&st=v2gquohz&raw=1" alt="Imagen de cita" class="imagen-cita" />
@@ -20,12 +22,11 @@
             <input type="date" id="fechaInput" required />
             <label class="label-banner" for="horaInput">🕒 Hora</label>
             <input type="time" id="horaInput" required />
-            <h3 class="Tex-tucita">Tu cita se agenda por medio de nuestro WhatsApp.
-</h3>
+            <h3 class="Tex-tucita">Tu cita se agenda por medio de nuestro WhatsApp.</h3>
             <button id="agendarBtn">Agendar</button>
         </div>
 
-        <!-- GALERÍA DE FOTOS (OCULTA POR DEFECTO) -->
+        <!-- GALERÍA DE FOTOS -->
         <div id="galeria-container">
             <h2 class="galeria-titulo">📸 Fotos de nuestros cortes</h2>
             <div class="galeria-grid">
@@ -38,8 +39,18 @@
         </div>
     </div>
 
-    <!-- BOTÓN "VER MÁS" (siempre visible) -->
+    <!-- BOTÓN "VER MÁS" (siempre visible en horario normal) -->
     <button id="button2">Ver más</button>
+
+    <!-- ===== PANTALLA DE PRE-AGENDA (oculta por defecto) ===== -->
+    <div id="preagenda-overlay">
+        <img src="https://www.dropbox.com/scl/fi/gk9ovs454q5nmxohsvfz5/Perfil.jpg?rlkey=qo2ha5it6e7pp2cpmdbgvv3h8&st=v2gquohz&raw=1"
+             alt="Barber shop" class="imagen-cita" />
+        <h2>Estamos cerrados</h2>
+        <p>Nuestro horario terminó a las <strong>9:10 pm</strong>.<br>
+           Puedes dejar tu cita pre-agendada para mañana.</p>
+        <button id="preagendarBtn">Pre-agendar</button>
+    </div>
 
     <script src="script.js"></script>
 </body>
