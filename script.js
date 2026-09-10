@@ -157,7 +157,7 @@ let timerCita         = null;
 let restanteConfirmacion = 0;
 let seguimientoActivo = false;
 
-// NUEVO: para poder restaurar el flujo tras recargar/cerrar la página
+// Para poder restaurar el flujo tras recargar/cerrar la página
 let confirmacionDeadline  = null;            // timestamp absoluto (ms)
 let pasoActualSeguimiento = 'confirmacion';  // 'confirmacion' | 'cita' | 'gracias'
 
@@ -1424,6 +1424,8 @@ function iniciarCuentaCita() {
         actualizarCuentaCita(fechaCita);
     }, 1000);
 
+    crearBotonCancelarCita(); // Pinta el botón rojo "Cancelar cita"
+
     guardarEstado();
 }
 
@@ -1512,6 +1514,7 @@ function cancelarSeguimiento(mensaje) {
     if (overlay) {
         overlay.classList.remove('activo');
         overlay.setAttribute('aria-hidden', 'true');
+        overlay.classList.remove('minimizado');
     }
 
     // Liberar la página por completo
@@ -1531,6 +1534,14 @@ function cancelarSeguimiento(mensaje) {
 
     const linkWhatsManual = document.getElementById('linkWhatsManual');
     if (linkWhatsManual) linkWhatsManual.classList.add('oculto');
+
+    // Quitar el botón "Cancelar cita" si quedó puesto
+    const btnCancelarCita = document.getElementById('btnCancelarCita');
+    if (btnCancelarCita) btnCancelarCita.remove();
+
+    // Quitar la pill flotante de "minimizado" si existe
+    const pillSeguimiento = document.getElementById('seguimiento-pill');
+    if (pillSeguimiento) pillSeguimiento.remove();
 
     // Habilitar el modal de nuevo por si quedó trabado algo
     document.querySelectorAll('.perfil .btn').forEach(function (btn) {
@@ -1583,6 +1594,411 @@ function inicializarSeguimiento() {
     if (btnFinalizar) {
         btnFinalizar.addEventListener('click', finalizarSeguimiento);
     }
+}
+
+// ============================================================
+//  MINIMIZAR / RESTAURAR OVERLAY DE SEGUIMIENTO
+// ============================================================
+
+function crearEstilosMinimizado() {
+    if (document.getElementById('seguimiento-minimizado-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'seguimiento-minimizado-styles';
+    style.textContent = `
+        /* Ocultar el overlay bloqueante mientras se elige el motivo */
+        #seguimiento-overlay.minimizado {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        /* Pill flotante que recuerda que la cita sigue en proceso */
+        #seguimiento-pill {
+            position: fixed; top: 14px; left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            z-index: 10900;
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 18px; border-radius: 30px;
+            background: #111827; color: #fff;
+            font-size: .85rem; font-weight: 600;
+            font-family: inherit;
+            box-shadow: 0 8px 24px rgba(0,0,0,.45);
+            opacity: 0; pointer-events: none;
+            transition: opacity .25s ease, transform .35s ease;
+            cursor: pointer; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            max-width: 92vw;
+            white-space: nowrap;
+        }
+        #seguimiento-pill.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+        #seguimiento-pill:hover { filter: brightness(1.15); }
+        #seguimiento-pill .pill-dot {
+            flex-shrink: 0;
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #ef4444;
+            animation: pillDotPulse 1.4s ease-in-out infinite;
+        }
+        @keyframes pillDotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: .5; transform: scale(.7); }
+        }
+        @media (max-width: 480px) {
+            #seguimiento-pill { font-size: .78rem; padding: 8px 14px; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function minimizarOverlaySeguimiento() {
+    crearEstilosMinimizado();
+
+    const overlay = document.getElementById('seguimiento-overlay');
+    if (overlay) overlay.classList.add('minimizado');
+
+    // Liberamos el scroll de la página por si el usuario quiere verla
+    document.body.classList.remove('sin-scroll', 'bloqueado');
+
+    // Pill flotante recordatoria (clic para restaurar)
+    let pill = document.getElementById('seguimiento-pill');
+    if (!pill) {
+        pill = document.createElement('div');
+        pill.id = 'seguimiento-pill';
+        pill.setAttribute('role', 'button');
+        pill.setAttribute('tabindex', '0');
+        pill.innerHTML = `
+            <span class="pill-dot"></span>
+            <span class="pill-texto">Cita en proceso — Cancelando…</span>
+        `;
+        pill.addEventListener('click', restaurarOverlaySeguimiento);
+        pill.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                restaurarOverlaySeguimiento();
+            }
+        });
+        document.body.appendChild(pill);
+    }
+
+    // Animación de entrada
+    requestAnimationFrame(() => pill.classList.add('visible'));
+}
+
+function restaurarOverlaySeguimiento() {
+    const overlay = document.getElementById('seguimiento-overlay');
+    if (overlay) overlay.classList.remove('minimizado');
+
+    const pill = document.getElementById('seguimiento-pill');
+    if (pill) {
+        pill.classList.remove('visible');
+        setTimeout(() => { if (pill && pill.parentNode) pill.remove(); }, 320);
+    }
+
+    // Volvemos a bloquear la página
+    document.body.classList.add('sin-scroll', 'bloqueado');
+}
+
+// ============================================================
+//  CANCELACIÓN DE CITA POR EL CLIENTE (con motivo)
+// ============================================================
+
+function crearBotonCancelarCita() {
+    const pasoCita = document.getElementById('pasoCita');
+    if (!pasoCita) return;
+
+    // No duplicar
+    if (document.getElementById('btnCancelarCita')) return;
+
+    if (!document.getElementById('btn-cancelar-cita-styles')) {
+        const style = document.createElement('style');
+        style.id = 'btn-cancelar-cita-styles';
+        style.textContent = `
+            #btnCancelarCita {
+                display: block;
+                margin: 22px auto 4px;
+                padding: 12px 22px;
+                background: transparent;
+                color: #ef4444;
+                border: 1.5px solid #ef4444;
+                border-radius: 10px;
+                font-size: .95rem;
+                font-weight: 700;
+                font-family: inherit;
+                cursor: pointer;
+                transition: background .2s ease, color .2s ease, transform .15s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            #btnCancelarCita:hover {
+                background: #ef4444;
+                color: #fff;
+            }
+            #btnCancelarCita:active {
+                transform: scale(.97);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'btnCancelarCita';
+    btn.textContent = 'Cancelar cita';
+    btn.addEventListener('click', function () {
+        cancelarCitaConMotivo();
+    });
+
+    pasoCita.appendChild(btn);
+}
+
+// ---------- Modal de motivos ----------
+
+function preguntarMotivoCancelacion() {
+    return new Promise(function (resolve) {
+
+        if (!document.getElementById('modal-motivo-styles')) {
+            const style = document.createElement('style');
+            style.id = 'modal-motivo-styles';
+            style.textContent = `
+                #modal-motivo-overlay {
+                    position: fixed; inset: 0; z-index: 11000;
+                    display: flex; align-items: center; justify-content: center;
+                    padding: 20px; background: rgba(0, 0, 0, .78);
+                    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+                    opacity: 0; visibility: hidden;
+                    transition: opacity .3s ease, visibility .3s ease;
+                    font-family: inherit;
+                }
+                #modal-motivo-overlay.activo { opacity: 1; visibility: visible; }
+                .modal-motivo {
+                    width: 100%; max-width: 420px;
+                    background: #ffffff; border-radius: 16px;
+                    padding: 26px 22px 20px; text-align: center;
+                    box-shadow: 0 25px 60px rgba(0, 0, 0, .5);
+                    transform: scale(.85) translateY(20px);
+                    transition: transform .35s cubic-bezier(.2, .9, .3, 1.2);
+                    color: #1f2937;
+                }
+                #modal-motivo-overlay.activo .modal-motivo {
+                    transform: scale(1) translateY(0);
+                }
+                .modal-motivo .icono-motivo {
+                    width: 64px; height: 64px; margin: 0 auto 14px;
+                    display: flex; align-items: center; justify-content: center;
+                    border-radius: 50%;
+                    background: linear-gradient(135deg, #fecaca, #ef4444);
+                    font-size: 1.8rem;
+                    box-shadow: 0 8px 22px rgba(239, 68, 68, .35);
+                }
+                .modal-motivo h2 {
+                    margin: 0 0 6px; font-size: 1.15rem;
+                    font-weight: 700; color: #111827;
+                }
+                .modal-motivo p {
+                    margin: 0 0 18px; font-size: .9rem;
+                    color: #6b7280;
+                }
+                .modal-motivo .opciones {
+                    display: flex; flex-direction: column; gap: 8px;
+                    margin-bottom: 14px;
+                }
+                .modal-motivo .opcion {
+                    padding: 13px 16px; border-radius: 10px;
+                    border: 1.5px solid #e5e7eb;
+                    background: #f9fafb; color: #1f2937;
+                    font-size: .95rem; font-weight: 600;
+                    cursor: pointer; text-align: left;
+                    transition: all .18s ease;
+                    font-family: inherit;
+                    -webkit-tap-highlight-color: transparent;
+                }
+                .modal-motivo .opcion:hover {
+                    border-color: #ef4444;
+                    background: #fef2f2;
+                    color: #b91c1c;
+                }
+                .modal-motivo .opcion.seleccionada {
+                    border-color: #ef4444;
+                    background: #fee2e2;
+                    color: #b91c1c;
+                }
+                .modal-motivo input[type="text"] {
+                    width: 100%; padding: 12px 14px;
+                    border-radius: 10px; border: 1.5px solid #e5e7eb;
+                    font-size: .95rem; font-family: inherit;
+                    margin-bottom: 14px; box-sizing: border-box;
+                    outline: none; transition: border-color .18s ease;
+                }
+                .modal-motivo input[type="text"]:focus {
+                    border-color: #ef4444;
+                }
+                .modal-motivo .acciones {
+                    display: flex; gap: 10px;
+                }
+                .modal-motivo .acciones button {
+                    flex: 1; padding: 12px 16px; border: none;
+                    border-radius: 10px; font-size: .95rem; font-weight: 700;
+                    cursor: pointer; font-family: inherit;
+                    transition: transform .15s ease, filter .2s ease, background .2s ease;
+                    -webkit-tap-highlight-color: transparent;
+                }
+                .modal-motivo .btn-volver {
+                    background: #f3f4f6; color: #4b5563;
+                }
+                .modal-motivo .btn-volver:hover { background: #e5e7eb; }
+                .modal-motivo .btn-confirmar {
+                    background: linear-gradient(135deg, #dc2626, #ef4444);
+                    color: #ffffff;
+                    box-shadow: 0 6px 16px rgba(220, 38, 38, .35);
+                }
+                .modal-motivo .btn-confirmar:hover { filter: brightness(1.1); }
+                .modal-motivo .btn-confirmar:disabled {
+                    opacity: .45; cursor: not-allowed; filter: none;
+                }
+                .modal-motivo .btn-confirmar:active:not(:disabled) { transform: scale(.97); }
+                .modal-motivo .oculto { display: none !important; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const anterior = document.getElementById('modal-motivo-overlay');
+        if (anterior) anterior.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'modal-motivo-overlay';
+        overlay.innerHTML = `
+            <div class="modal-motivo" role="dialog" aria-modal="true">
+                <div class="icono-motivo">⚠️</div>
+                <h2>Cancelar cita</h2>
+                <p>Cuéntanos el motivo para avisarle al barbero.</p>
+                <div class="opciones" id="opcionesMotivo">
+                    <button type="button" class="opcion" data-motivo="Tuve un asunto pendiente">Tuve un asunto pendiente</button>
+                    <button type="button" class="opcion" data-motivo="No podré asistir">No podré asistir</button>
+                    <button type="button" class="opcion" data-motivo="__otro__">Otro (escribir motivo)</button>
+                </div>
+                <input type="text" id="motivoOtroInput" class="oculto" maxlength="120" placeholder="Escribe el motivo...">
+                <div class="acciones">
+                    <button type="button" class="btn-volver" id="motivoVolver">Volver</button>
+                    <button type="button" class="btn-confirmar" id="motivoConfirmar" disabled>Enviar y cancelar</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        requestAnimationFrame(() => overlay.classList.add('activo'));
+
+        let motivoSeleccionado = null;
+        const inputOtro    = overlay.querySelector('#motivoOtroInput');
+        const btnConfirmar = overlay.querySelector('#motivoConfirmar');
+        const opciones     = overlay.querySelectorAll('.opcion');
+
+        function actualizarBoton() {
+            if (motivoSeleccionado === '__otro__') {
+                const txt = inputOtro.value.trim();
+                btnConfirmar.disabled = txt.length < 3;
+            } else {
+                btnConfirmar.disabled = !motivoSeleccionado;
+            }
+        }
+
+        opciones.forEach(function (op) {
+            op.addEventListener('click', function () {
+                opciones.forEach(o => o.classList.remove('seleccionada'));
+                op.classList.add('seleccionada');
+                motivoSeleccionado = op.dataset.motivo;
+
+                if (motivoSeleccionado === '__otro__') {
+                    inputOtro.classList.remove('oculto');
+                    setTimeout(() => inputOtro.focus(), 100);
+                } else {
+                    inputOtro.classList.add('oculto');
+                    inputOtro.value = '';
+                }
+                actualizarBoton();
+            });
+        });
+
+        inputOtro.addEventListener('input', actualizarBoton);
+
+        function cerrar(valor) {
+            overlay.classList.remove('activo');
+            setTimeout(() => overlay.remove(), 350);
+            document.removeEventListener('keydown', manejarTecla);
+            resolve(valor);
+        }
+
+        function manejarTecla(e) {
+            if (e.key === 'Escape') cerrar(null);
+        }
+
+        overlay.querySelector('#motivoVolver').addEventListener('click', function () { cerrar(null); });
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) cerrar(null);
+        });
+
+        btnConfirmar.addEventListener('click', function () {
+            let motivoFinal = motivoSeleccionado;
+            if (motivoSeleccionado === '__otro__') {
+                motivoFinal = inputOtro.value.trim();
+            }
+            cerrar(motivoFinal || null);
+        });
+
+        document.addEventListener('keydown', manejarTecla);
+    });
+}
+
+// ---------- Cancelar y enviar el motivo al barbero ----------
+
+async function cancelarCitaConMotivo() {
+    if (!citaActual) return;
+
+    // 1) Minimizamos la ventana de "cita confirmada"
+    //    para que el usuario pueda elegir el motivo con calma.
+    minimizarOverlaySeguimiento();
+
+    // 2) Modal de motivos
+    const motivo = await preguntarMotivoCancelacion();
+
+    // Si cerró el modal sin elegir motivo → restauramos la ventana
+    if (!motivo) {
+        restaurarOverlaySeguimiento();
+        return;
+    }
+
+    // 3) Confirmación final
+    const ok = confirm('¿Seguro que quieres cancelar la cita?\n\nMotivo: ' + motivo);
+    if (!ok) {
+        // Se arrepintió → restauramos la ventana
+        restaurarOverlaySeguimiento();
+        return;
+    }
+
+    // 4) Enviar al barbero por WhatsApp
+    const texto = [
+        '❌ *CITA CANCELADA*',
+        'Cliente: ' + citaActual.nombre,
+        'Cita: '    + citaActual.fecha + ' ' + citaActual.hora,
+        'Barbero: ' + citaActual.barbero,
+        'Motivo: '  + motivo
+    ].join('\n');
+
+    const url = 'https://wa.me/' + citaActual.whatsapp + '?text=' + encodeURIComponent(texto);
+    const win = window.open(url, '_blank');
+
+    // Fallback si el navegador bloqueó el popup
+    const linkWhatsManual = document.getElementById('linkWhatsManual');
+    if (!win && linkWhatsManual) {
+        linkWhatsManual.href = url;
+        linkWhatsManual.classList.remove('oculto');
+    }
+
+    // 5) Liberar el seguimiento por completo
+    //    (esto ya elimina overlay, timers, localStorage y también la pill)
+    cancelarSeguimiento('Cita cancelada. Ya puedes agendar de nuevo 💈');
 }
 
 // ============================================================
@@ -1655,7 +2071,14 @@ window.addEventListener('storage', function (e) {
         if (overlay) {
             overlay.classList.remove('activo');
             overlay.setAttribute('aria-hidden', 'true');
+            overlay.classList.remove('minimizado');
         }
+
+        const btnCancelarCita = document.getElementById('btnCancelarCita');
+        if (btnCancelarCita) btnCancelarCita.remove();
+
+        const pillOtra = document.getElementById('seguimiento-pill');
+        if (pillOtra) pillOtra.remove();
 
         document.body.classList.remove('sin-scroll', 'bloqueado');
         mostrarPasoSeguimiento('confirmacion');
