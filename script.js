@@ -435,14 +435,14 @@ function sincronizarBotonFlotante() {
     if (galeria.classList.contains('visible')) {
         boton.classList.add('flotante');
         boton.textContent = '✕';
-        boton.setAttribute('aria-label', 'Mostrar menos');
-        boton.setAttribute('title', 'Mostrar menos');
+        boton.setAttribute('aria-label', 'Cerrar galería');
+        boton.setAttribute('title', 'Cerrar galería');
         boton.setAttribute('aria-expanded', 'true');
     } else {
         boton.classList.remove('flotante');
-        boton.textContent = 'Ver más';
-        boton.setAttribute('aria-label', 'Ver más');
-        boton.setAttribute('title', 'Ver más');
+        boton.textContent = 'Ver Barber';
+        boton.setAttribute('aria-label', 'Ver Barber');
+        boton.setAttribute('title', 'Ver Barber');
         boton.setAttribute('aria-expanded', 'false');
     }
 }
@@ -1043,10 +1043,10 @@ function inicializarApp() {
         console.warn('No se encontró el botón con id="agendarBtn"');
     }
 
-    // 5) Botón Ver más
-    const botonVerMas = document.getElementById('button2');
-    if (botonVerMas) {
-        botonVerMas.addEventListener('click', toggleContenido);
+    // 5) Botón Ver Barber
+    const botonVerBarber = document.getElementById('button2');
+    if (botonVerBarber) {
+        botonVerBarber.addEventListener('click', toggleContenido);
     } else {
         console.warn('No se encontró el botón con id="button2"');
     }
