@@ -9,14 +9,12 @@ function ajustarResponsive() {
 
     if (ancho <= 480) {
         titulo.style.fontSize = '2rem';
-        titulo.style.marginTop = '0';
     } else if (ancho <= 768) {
         titulo.style.fontSize = '2.8rem';
-        titulo.style.marginTop = '0';
     } else {
         titulo.style.fontSize = '3rem';
-        titulo.style.marginTop = '0';
     }
+    titulo.style.marginTop = '0';
 
     let blurValue = '3px';
     if (ancho <= 480) blurValue = '1px';
@@ -34,6 +32,53 @@ function ajustarResponsive() {
             filter: blur(${blurValue}) !important;
         }
     `;
+}
+
+// ============================================================
+//  CIERRE AUTOMÁTICO DESPUÉS DE LAS 9:10 PM (PRE-AGENDA)
+// ============================================================
+
+const HORA_CIERRE_H = 21;   // 21 = 9 pm
+const HORA_CIERRE_M = 10;   // 10 minutos
+
+let preagendaDesbloqueada = false;
+let preagendaIntervalo = null;
+
+function estaCerrado() {
+    const ahora = new Date();
+    const minAhora  = ahora.getHours() * 60 + ahora.getMinutes();
+    const minCierre = HORA_CIERRE_H * 60 + HORA_CIERRE_M;
+    return minAhora >= minCierre;
+}
+
+function aplicarEstadoCierre() {
+    if (preagendaDesbloqueada) return;
+    document.body.classList.toggle('cerrado', estaCerrado());
+}
+
+function inicializarPreagenda() {
+    if (preagendaIntervalo) return; // evita doble inicialización
+
+    const btnPre     = document.getElementById('preagendarBtn');
+    const formulario = document.getElementById('formulario');
+
+    // Aplicar estado al cargar
+    aplicarEstadoCierre();
+
+    // Re-evaluar cada 30 segundos
+    preagendaIntervalo = setInterval(aplicarEstadoCierre, 30000);
+
+    if (btnPre) {
+        btnPre.addEventListener('click', function () {
+            preagendaDesbloqueada = true;
+            document.body.classList.remove('cerrado');
+            if (formulario) {
+                formulario.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    } else {
+        console.warn('No se encontró el botón con id="preagendarBtn"');
+    }
 }
 
 // ============================================================
@@ -66,21 +111,21 @@ function enviarWhatsApp() {
     });
 
     // ---------- Mensaje de WhatsApp ----------
-    let mensaje = `📌 *NUEVA CITA DE BARBERÍA*%0A`;
-    mensaje += `👤 *Nombre:* ${nombre}%0A`;
-    mensaje += `📅 *Fecha:* ${fechaFormateada}%0A`;
-    mensaje += `🕒 *Hora:* ${horaFormateada}%0A`;
+    let mensaje = `📌 *NUEVA CITA DE BARBERÍA*\n`;
+    mensaje += `👤 *Nombre:* ${nombre}\n`;
+    mensaje += `📅 *Fecha:* ${fechaFormateada}\n`;
+    mensaje += `🕒 *Hora:* ${horaFormateada}\n`;
     if (servicio !== '') {
-        mensaje += `✂️ *Servicio:* ${servicio}%0A`;
+        mensaje += `✂️ *Servicio:* ${servicio}\n`;
     }
-    mensaje += `%0A¡Esperamos tu visita! ✨`;
+    mensaje += `\n¡Esperamos tu visita! ✨`;
 
     const numero = '524621098798';
-    const url = `https://wa.me/${numero}?text=${mensaje}`;
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
 
     window.open(url, '_blank');
 
-    // ---------- Preparar datos del PDF (hora real del registro) ----------
+    // ---------- Preparar datos del PDF ----------
     const ahora = new Date();
     const pad = (n) => String(n).padStart(2, '0');
 
@@ -113,7 +158,7 @@ function enviarWhatsApp() {
         horaArchivo:  pad(ahora.getHours()) + pad(ahora.getMinutes())
     };
 
-    // ---------- Preguntar al usuario si desea el comprobante ----------
+    // ---------- Preguntar si desea el comprobante ----------
     preguntarDescargaComprobante(datosPDF);
 
     // ---------- Resetear formulario ----------
@@ -156,7 +201,6 @@ function preguntarDescargaComprobante(datosPDF) {
                 opacity: 1;
                 visibility: visible;
             }
-
             .modal-comprobante {
                 width: 100%;
                 max-width: 400px;
@@ -172,7 +216,6 @@ function preguntarDescargaComprobante(datosPDF) {
             #modal-comprobante-overlay.activo .modal-comprobante {
                 transform: scale(1) translateY(0);
             }
-
             .modal-comprobante .icono {
                 width: 70px;
                 height: 70px;
@@ -185,26 +228,22 @@ function preguntarDescargaComprobante(datosPDF) {
                 font-size: 2rem;
                 box-shadow: 0 8px 22px rgba(198, 160, 90, .45);
             }
-
             .modal-comprobante h2 {
                 margin: 0 0 10px;
                 font-size: 1.25rem;
                 font-weight: 700;
                 color: #111827;
             }
-
             .modal-comprobante p {
                 margin: 0 0 22px;
                 font-size: .95rem;
                 line-height: 1.5;
                 color: #4b5563;
             }
-
             .modal-comprobante .acciones {
                 display: flex;
                 gap: 10px;
             }
-
             .modal-comprobante button {
                 flex: 1;
                 padding: 12px 16px;
@@ -217,7 +256,6 @@ function preguntarDescargaComprobante(datosPDF) {
                 transition: transform .15s ease, box-shadow .2s ease, background .2s ease, filter .2s ease;
                 -webkit-tap-highlight-color: transparent;
             }
-
             .modal-comprobante .btn-si {
                 background: linear-gradient(135deg, #111827, #1f2937);
                 color: #ffffff;
@@ -227,31 +265,21 @@ function preguntarDescargaComprobante(datosPDF) {
                 filter: brightness(1.15);
                 transform: translateY(-1px);
             }
-            .modal-comprobante .btn-si:active {
-                transform: scale(.97);
-            }
-
+            .modal-comprobante .btn-si:active { transform: scale(.97); }
             .modal-comprobante .btn-no {
                 background: #f3f4f6;
                 color: #4b5563;
             }
-            .modal-comprobante .btn-no:hover {
-                background: #e5e7eb;
-            }
-            .modal-comprobante .btn-no:active {
-                transform: scale(.97);
-            }
-
+            .modal-comprobante .btn-no:hover { background: #e5e7eb; }
+            .modal-comprobante .btn-no:active { transform: scale(.97); }
             body.modal-comprobante-abierto { overflow: hidden; }
         `;
         document.head.appendChild(style);
     }
 
-    // Eliminar cualquier modal previo
     const anterior = document.getElementById('modal-comprobante-overlay');
     if (anterior) anterior.remove();
 
-    // Crear overlay
     const overlay = document.createElement('div');
     overlay.id = 'modal-comprobante-overlay';
     overlay.innerHTML = `
@@ -268,10 +296,8 @@ function preguntarDescargaComprobante(datosPDF) {
     document.body.appendChild(overlay);
     document.body.classList.add('modal-comprobante-abierto');
 
-    // Activar animación
     requestAnimationFrame(() => overlay.classList.add('activo'));
 
-    // Cerrar el modal
     function cerrarModal() {
         overlay.classList.remove('activo');
         document.body.classList.remove('modal-comprobante-abierto');
@@ -279,19 +305,16 @@ function preguntarDescargaComprobante(datosPDF) {
         document.removeEventListener('keydown', manejarTecla);
     }
 
-    // Confirmar descarga
     function confirmarDescarga() {
         cerrarModal();
         generarPDFCita(datosPDF);
     }
 
-    // Manejo de teclado
     function manejarTecla(e) {
         if (e.key === 'Escape') cerrarModal();
-        if (e.key === 'Enter') confirmarDescarga();
+        if (e.key === 'Enter')  confirmarDescarga();
     }
 
-    // Eventos
     overlay.querySelector('#modal-comprobante-si').addEventListener('click', confirmarDescarga);
     overlay.querySelector('#modal-comprobante-no').addEventListener('click', cerrarModal);
     overlay.addEventListener('click', (e) => {
@@ -299,7 +322,6 @@ function preguntarDescargaComprobante(datosPDF) {
     });
     document.addEventListener('keydown', manejarTecla);
 
-    // Foco accesible al botón principal
     setTimeout(() => {
         const btnSi = overlay.querySelector('#modal-comprobante-si');
         if (btnSi) btnSi.focus();
@@ -307,7 +329,7 @@ function preguntarDescargaComprobante(datosPDF) {
 }
 
 // ============================================================
-//  ESTILOS DEL BOTÓN FLOTANTE CIRCULAR (se inyectan una vez)
+//  ESTILOS DEL BOTÓN FLOTANTE CIRCULAR
 // ============================================================
 
 function crearEstilosBotonFlotante() {
@@ -316,49 +338,39 @@ function crearEstilosBotonFlotante() {
     const style = document.createElement('style');
     style.id = 'boton-flotante-styles';
     style.textContent = `
-        /* ---------- Botón flotante circular ---------- */
         #button2.flotante {
             position: fixed !important;
             top: auto !important;
             left: auto !important;
             right: 24px !important;
             bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
-
             width: 62px !important;
             height: 62px !important;
             min-width: 0 !important;
             max-width: none !important;
             padding: 0 !important;
             margin: 0 !important;
-
             display: flex !important;
             align-items: center;
             justify-content: center;
-
             border-radius: 50% !important;
             font-size: 1.5rem !important;
             font-weight: 700;
             line-height: 1 !important;
             text-align: center;
-
             cursor: pointer;
             z-index: 9000 !important;
-
             box-shadow:
                 0 10px 26px rgba(0, 0, 0, .45),
                 0 4px 10px rgba(0, 0, 0, .30) !important;
-
             transition:
                 transform .25s ease,
                 box-shadow .25s ease,
                 filter .25s ease !important;
-
             animation: botonFlotanteAparecer .28s ease;
-
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
         }
-
         #button2.flotante:hover {
             transform: scale(1.08) rotate(90deg);
             box-shadow:
@@ -366,17 +378,13 @@ function crearEstilosBotonFlotante() {
                 0 6px 14px rgba(0, 0, 0, .35) !important;
             filter: brightness(1.12);
         }
-
         #button2.flotante:active {
             transform: scale(.92) rotate(90deg);
         }
-
         #button2.flotante:focus-visible {
             outline: 3px solid rgba(255, 255, 255, .85);
             outline-offset: 3px;
         }
-
-        /* Halo pulsante sutil */
         #button2.flotante::after {
             content: '';
             position: absolute;
@@ -387,19 +395,15 @@ function crearEstilosBotonFlotante() {
             pointer-events: none;
             animation: botonFlotantePulso 2.4s ease-out infinite;
         }
-
         @keyframes botonFlotanteAparecer {
             from { opacity: 0; transform: scale(.4); }
             to   { opacity: 1; transform: scale(1); }
         }
-
         @keyframes botonFlotantePulso {
             0%   { opacity: .55; transform: scale(.9); }
             70%  { opacity: 0;   transform: scale(1.35); }
             100% { opacity: 0;   transform: scale(1.35); }
         }
-
-        /* ---------- Ajustes en móvil ---------- */
         @media (max-width: 768px) {
             #button2.flotante {
                 right: 16px !important;
@@ -409,8 +413,6 @@ function crearEstilosBotonFlotante() {
                 font-size: 1.3rem !important;
             }
         }
-
-        /* ---------- Respeta "reducir movimiento" ---------- */
         @media (prefers-reduced-motion: reduce) {
             #button2.flotante,
             #button2.flotante::after {
@@ -422,7 +424,7 @@ function crearEstilosBotonFlotante() {
 }
 
 // ============================================================
-//  SINCRONIZAR ESTADO DEL BOTÓN (flotante / normal)
+//  SINCRONIZAR ESTADO DEL BOTÓN
 // ============================================================
 
 function sincronizarBotonFlotante() {
@@ -431,14 +433,12 @@ function sincronizarBotonFlotante() {
     if (!galeria || !boton) return;
 
     if (galeria.classList.contains('visible')) {
-        // Galería abierta → botón flotante circular con ✕
         boton.classList.add('flotante');
         boton.textContent = '✕';
         boton.setAttribute('aria-label', 'Mostrar menos');
         boton.setAttribute('title', 'Mostrar menos');
         boton.setAttribute('aria-expanded', 'true');
     } else {
-        // Galería cerrada → botón normal
         boton.classList.remove('flotante');
         boton.textContent = 'Ver más';
         boton.setAttribute('aria-label', 'Ver más');
@@ -448,7 +448,7 @@ function sincronizarBotonFlotante() {
 }
 
 // ============================================================
-//  ALTERNAR VISIBILIDAD (formulario + galería)
+//  ALTERNAR VISIBILIDAD
 // ============================================================
 
 function toggleContenido() {
@@ -458,31 +458,28 @@ function toggleContenido() {
 
     if (!formulario || !galeria || !boton) return;
 
-    // Alternar clases (formulario oculto ↔ galería visible)
     formulario.classList.toggle('oculto');
     galeria.classList.toggle('visible');
 
-    // Actualizar el botón (flotante circular o normal)
     sincronizarBotonFlotante();
 }
 
 // ============================================================
-//  VISOR DE IMÁGENES DE LA GALERÍA (Lightbox con swipe)
+//  VISOR DE IMÁGENES (Lightbox con swipe)
 // ============================================================
 
 let lightboxIndex = 0;
 let lightboxImagenes = [];
-
 let touchStartX = 0;
 let touchStartY = 0;
 let touchMoved = false;
-
 let mouseDown = false;
 let mouseStartX = 0;
 let mouseStartY = 0;
 let mouseDragged = false;
+let lightboxListenersReady = false;
 
-const SWIPE_UMBRAL = 50; // píxeles mínimos para considerar un swipe
+const SWIPE_UMBRAL = 50;
 
 function obtenerImagenesGaleria() {
     const cont = document.getElementById('galeria-container');
@@ -499,13 +496,11 @@ function crearLightbox() {
     let lightbox = document.getElementById('lightbox');
     if (lightbox) return lightbox;
 
-    // Estilos (se inyectan una sola vez)
     if (!document.getElementById('lightbox-styles')) {
         const style = document.createElement('style');
         style.id = 'lightbox-styles';
         style.textContent = `
             #galeria-container img { cursor: zoom-in; }
-
             #lightbox {
                 position: fixed;
                 inset: 0;
@@ -525,10 +520,7 @@ function crearLightbox() {
                 user-select: none;
                 -webkit-user-select: none;
             }
-            #lightbox.activo {
-                opacity: 1;
-                visibility: visible;
-            }
+            #lightbox.activo { opacity: 1; visibility: visible; }
             #lightbox img {
                 max-width: 95vw;
                 max-height: 88vh;
@@ -545,7 +537,6 @@ function crearLightbox() {
             }
             #lightbox.activo img { transform: scale(1); }
             #lightbox img.cambiando { opacity: 0; }
-
             #lightbox-cerrar {
                 position: absolute;
                 top: 18px;
@@ -569,7 +560,6 @@ function crearLightbox() {
                 background: rgba(255, 255, 255, .32);
                 transform: rotate(90deg);
             }
-
             .lightbox-flecha {
                 position: absolute;
                 top: 50%;
@@ -593,7 +583,6 @@ function crearLightbox() {
             .lightbox-flecha:hover { background: rgba(255, 255, 255, .32); }
             #lightbox-prev { left: 22px; }
             #lightbox-next { right: 22px; }
-
             #lightbox-contador {
                 position: absolute;
                 bottom: 22px;
@@ -609,7 +598,6 @@ function crearLightbox() {
                 z-index: 2;
                 font-family: inherit;
             }
-
             #lightbox-hint {
                 position: absolute;
                 bottom: 60px;
@@ -626,9 +614,7 @@ function crearLightbox() {
                 0%, 60% { opacity: 1; }
                 100% { opacity: 0; }
             }
-
             body.lightbox-abierto { overflow: hidden; }
-
             @media (max-width: 768px) {
                 #lightbox { padding: 10px; }
                 #lightbox img { max-width: 100vw; max-height: 82vh; border-radius: 6px; }
@@ -653,7 +639,6 @@ function crearLightbox() {
     `;
     document.body.appendChild(lightbox);
 
-    // --- Cerrar con clic en fondo o botón X ---
     lightbox.addEventListener('click', function (e) {
         if (mouseDragged) { mouseDragged = false; return; }
         if (touchMoved)    { touchMoved = false;    return; }
@@ -663,7 +648,6 @@ function crearLightbox() {
         }
     });
 
-    // --- Flechas ---
     lightbox.querySelector('#lightbox-prev').addEventListener('click', function (e) {
         e.stopPropagation();
         cambiarImagen(-1);
@@ -673,21 +657,7 @@ function crearLightbox() {
         cambiarImagen(1);
     });
 
-    // --- Teclado ---
-    document.addEventListener('keydown', function (e) {
-        const lb = document.getElementById('lightbox');
-        if (!lb || !lb.classList.contains('activo')) return;
-
-        if (e.key === 'Escape') {
-            cerrarLightbox();
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
-            cambiarImagen(1);
-        } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
-            cambiarImagen(-1);
-        }
-    });
-
-    // --- Swipe táctil (móvil / tablet) ---
+    // ----- Swipe táctil -----
     lightbox.addEventListener('touchstart', function (e) {
         if (e.touches.length !== 1) return;
         touchStartX = e.touches[0].clientX;
@@ -710,18 +680,15 @@ function crearLightbox() {
         const absY = Math.abs(dy);
 
         if (absY > absX && absY > SWIPE_UMBRAL) {
-            // Arriba → siguiente | Abajo → anterior
             cambiarImagen(dy < 0 ? 1 : -1);
         } else if (absX > absY && absX > SWIPE_UMBRAL) {
-            // Izquierda → siguiente | Derecha → anterior
             cambiarImagen(dx < 0 ? 1 : -1);
         }
 
-        // Evita que el click posterior dispare cerrar
         setTimeout(function () { touchMoved = false; }, 60);
     }, { passive: true });
 
-    // --- Arrastre con mouse (escritorio) ---
+    // ----- Arrastre con mouse -----
     lightbox.addEventListener('mousedown', function (e) {
         const id = e.target.id;
         if (id === 'lightbox-cerrar' || id === 'lightbox-prev' || id === 'lightbox-next') return;
@@ -731,30 +698,48 @@ function crearLightbox() {
         mouseStartY = e.clientY;
     });
 
-    document.addEventListener('mousemove', function (e) {
-        if (!mouseDown) return;
-        const dx = Math.abs(e.clientX - mouseStartX);
-        const dy = Math.abs(e.clientY - mouseStartY);
-        if (dx > 10 || dy > 10) mouseDragged = true;
-    });
+    // Listener de arrastre global (solo se agrega una vez)
+    if (!lightboxListenersReady) {
+        document.addEventListener('mousemove', function (e) {
+            if (!mouseDown) return;
+            const dx = Math.abs(e.clientX - mouseStartX);
+            const dy = Math.abs(e.clientY - mouseStartY);
+            if (dx > 10 || dy > 10) mouseDragged = true;
+        });
 
-    document.addEventListener('mouseup', function (e) {
-        if (!mouseDown) return;
-        mouseDown = false;
+        document.addEventListener('mouseup', function (e) {
+            if (!mouseDown) return;
+            mouseDown = false;
 
-        const dx = e.clientX - mouseStartX;
-        const dy = e.clientY - mouseStartY;
-        const absX = Math.abs(dx);
-        const absY = Math.abs(dy);
+            const dx = e.clientX - mouseStartX;
+            const dy = e.clientY - mouseStartY;
+            const absX = Math.abs(dx);
+            const absY = Math.abs(dy);
 
-        if (absY > absX && absY > SWIPE_UMBRAL) {
-            cambiarImagen(dy < 0 ? 1 : -1);
-        } else if (absX > absY && absX > SWIPE_UMBRAL) {
-            cambiarImagen(dx < 0 ? 1 : -1);
-        }
-    });
+            if (absY > absX && absY > SWIPE_UMBRAL) {
+                cambiarImagen(dy < 0 ? 1 : -1);
+            } else if (absX > absY && absX > SWIPE_UMBRAL) {
+                cambiarImagen(dx < 0 ? 1 : -1);
+            }
+        });
 
-    // Prevenir el drag nativo de la imagen
+        // ----- Teclado (solo un listener global) -----
+        document.addEventListener('keydown', function (e) {
+            const lb = document.getElementById('lightbox');
+            if (!lb || !lb.classList.contains('activo')) return;
+
+            if (e.key === 'Escape') {
+                cerrarLightbox();
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+                cambiarImagen(1);
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+                cambiarImagen(-1);
+            }
+        });
+
+        lightboxListenersReady = true;
+    }
+
     lightbox.addEventListener('dragstart', function (e) { e.preventDefault(); });
 
     return lightbox;
@@ -778,11 +763,9 @@ function abrirLightbox(indice) {
     lightbox.classList.add('activo');
     document.body.classList.add('lightbox-abierto');
 
-    // Reiniciar hint (para que vuelva a mostrarse)
     const hint = lightbox.querySelector('#lightbox-hint');
     if (hint) {
         hint.style.animation = 'none';
-        // fuerza reflow
         void hint.offsetWidth;
         hint.style.animation = 'lightbox-hint-fade 3s ease forwards';
     }
@@ -798,7 +781,6 @@ function cambiarImagen(delta) {
     const imgEl = document.querySelector('#lightbox img');
     if (!imgEl) return;
 
-    // Pequeña transición de fundido
     imgEl.classList.add('cambiando');
 
     setTimeout(function () {
@@ -810,7 +792,6 @@ function cambiarImagen(delta) {
             imgEl.classList.remove('cambiando');
             imgEl.onload = null;
         };
-        // Fallback por si la imagen ya estaba cacheada
         setTimeout(function () { imgEl.classList.remove('cambiando'); }, 120);
 
         actualizarContador();
@@ -830,7 +811,6 @@ function cerrarLightbox() {
     lightbox.classList.remove('activo');
     document.body.classList.remove('lightbox-abierto');
 
-    // Limpiar el src cuando termina la animación
     setTimeout(function () {
         if (!lightbox.classList.contains('activo')) {
             const imgEl = lightbox.querySelector('img');
@@ -839,12 +819,12 @@ function cerrarLightbox() {
     }, 320);
 }
 
-// Delegación: funciona con imágenes presentes o añadidas dinámicamente
+// Delegación global: se agrega UNA sola vez
 document.addEventListener('click', function (e) {
     const img = e.target.closest('#galeria-container img');
     if (!img) return;
 
-    e.preventDefault(); // evita navegar si la imagen está dentro de un <a>
+    e.preventDefault();
 
     const imgs = obtenerImagenesGaleria();
     const idx = imgs.indexOf(img);
@@ -889,8 +869,8 @@ function cargarJsPDF() {
 function limpiarTextoArchivo(texto) {
     return String(texto)
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')      // quita acentos
-        .replace(/[^a-zA-Z0-9]+/g, '_')       // reemplaza símbolos
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '_')
         .replace(/^_+|_+$/g, '')
         .slice(0, 30) || 'Cliente';
 }
@@ -901,21 +881,20 @@ async function generarPDFCita(datos) {
 
         const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
 
-        // ---------- Paleta ----------
         const OSCURO = [17, 24, 39];
         const DORADO = [198, 160, 90];
         const TEXTO  = [30, 30, 30];
         const SUAVE  = [110, 110, 110];
         const LINEA  = [222, 222, 222];
 
-        const ancho  = doc.internal.pageSize.getWidth();   // 210 mm
-        const alto   = doc.internal.pageSize.getHeight();  // 297 mm
+        const ancho  = doc.internal.pageSize.getWidth();
+        const alto   = doc.internal.pageSize.getHeight();
         const margen = 18;
         const cardW  = ancho - margen * 2;
         const centro = ancho / 2;
         const cardX  = margen;
 
-        // ---------- CABECERA ----------
+        // CABECERA
         doc.setFillColor(OSCURO[0], OSCURO[1], OSCURO[2]);
         doc.rect(0, 0, ancho, 44, 'F');
 
@@ -932,36 +911,30 @@ async function generarPDFCita(datos) {
         doc.setTextColor(214, 214, 214);
         doc.text('Comprobante de reserva', centro, 31, { align: 'center' });
 
-        // ---------- TARJETA DE DATOS ----------
+        // TARJETA
         const filas = [
             ['NOMBRE',           datos.nombre],
             ['FECHA DE LA CITA', datos.fecha],
             ['HORA DE LA CITA',  datos.hora]
         ];
-        if (datos.servicio) {
-            filas.push(['SERVICIO', datos.servicio]);
-        }
+        if (datos.servicio) filas.push(['SERVICIO', datos.servicio]);
 
         const cardY  = 62;
         const rowH   = 18;
         const padTop = 13;
         const cardH  = padTop + filas.length * rowH - 4;
 
-        // sombra
         doc.setFillColor(232, 232, 232);
         doc.roundedRect(cardX + 1.5, cardY + 1.5, cardW, cardH, 3, 3, 'F');
 
-        // tarjeta
         doc.setFillColor(250, 250, 250);
         doc.setDrawColor(LINEA[0], LINEA[1], LINEA[2]);
         doc.setLineWidth(0.3);
         doc.roundedRect(cardX, cardY, cardW, cardH, 3, 3, 'FD');
 
-        // franja dorada lateral
         doc.setFillColor(DORADO[0], DORADO[1], DORADO[2]);
         doc.roundedRect(cardX + 0.8, cardY + 1.2, 2.2, cardH - 2.4, 1, 1, 'F');
 
-        // filas
         let y = cardY + padTop;
         filas.forEach(function (fila, i) {
             doc.setFont('helvetica', 'bold');
@@ -982,7 +955,7 @@ async function generarPDFCita(datos) {
             y += rowH;
         });
 
-        // ---------- CAJA DE REGISTRO ----------
+        // CAJA DE REGISTRO
         const infoY = cardY + cardH + 14;
         const infoH = 24;
 
@@ -999,7 +972,6 @@ async function generarPDFCita(datos) {
         doc.setTextColor(255, 255, 255);
         doc.text(String(datos.generado), cardX + 11, infoY + 17.5);
 
-        // código de la cita (derecha)
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         doc.setTextColor(175, 175, 175);
@@ -1010,18 +982,14 @@ async function generarPDFCita(datos) {
         doc.setTextColor(255, 255, 255);
         doc.text(String(datos.codigo), cardX + cardW - 11, infoY + 17.5, { align: 'right' });
 
-        // ---------- NOTA ----------
+        // NOTA
         doc.setFont('helvetica', 'italic');
         doc.setFontSize(10);
         doc.setTextColor(SUAVE[0], SUAVE[1], SUAVE[2]);
-        doc.text(
-            'Presenta este comprobante al llegar a tu cita.',
-            centro,
-            infoY + infoH + 18,
-            { align: 'center' }
-        );
+        doc.text('Presenta este comprobante al llegar a tu cita.',
+                 centro, infoY + infoH + 18, { align: 'center' });
 
-        // ---------- PIE ----------
+        // PIE
         doc.setDrawColor(LINEA[0], LINEA[1], LINEA[2]);
         doc.setLineWidth(0.3);
         doc.line(margen, alto - 34, ancho - margen, alto - 34);
@@ -1029,18 +997,15 @@ async function generarPDFCita(datos) {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
         doc.setTextColor(SUAVE[0], SUAVE[1], SUAVE[2]);
-        doc.text('Gracias por tu preferencia. ¡Te esperamos!', centro, alto - 26, { align: 'center' });
+        doc.text('Gracias por tu preferencia. ¡Te esperamos!',
+                 centro, alto - 26, { align: 'center' });
 
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
-        doc.text(
-            'Comprobante generado automáticamente desde el sitio web de reservas.',
-            centro,
-            alto - 20,
-            { align: 'center' }
-        );
+        doc.text('Comprobante generado automáticamente desde el sitio web de reservas.',
+                 centro, alto - 20, { align: 'center' });
 
-        // ---------- GUARDAR ----------
+        // GUARDAR
         const archivo = 'Cita_'
             + limpiarTextoArchivo(datos.nombre) + '_'
             + datos.fechaArchivo + '_'
@@ -1060,14 +1025,17 @@ async function generarPDFCita(datos) {
 //  INICIALIZACIÓN
 // ============================================================
 
-window.addEventListener('load', function() {
-    // 1) Inyectar estilos del botón flotante ANTES de pintar
+function inicializarApp() {
+    // 1) Estilos del botón flotante
     crearEstilosBotonFlotante();
 
     // 2) Ajustes responsive
     ajustarResponsive();
 
-    // 3) Botón Agendar
+    // 3) Sistema de pre-agenda
+    inicializarPreagenda();
+
+    // 4) Botón Agendar
     const botonAgendar = document.getElementById('agendarBtn');
     if (botonAgendar) {
         botonAgendar.addEventListener('click', enviarWhatsApp);
@@ -1075,7 +1043,7 @@ window.addEventListener('load', function() {
         console.warn('No se encontró el botón con id="agendarBtn"');
     }
 
-    // 4) Botón Ver más / Mostrar menos
+    // 5) Botón Ver más
     const botonVerMas = document.getElementById('button2');
     if (botonVerMas) {
         botonVerMas.addEventListener('click', toggleContenido);
@@ -1083,10 +1051,10 @@ window.addEventListener('load', function() {
         console.warn('No se encontró el botón con id="button2"');
     }
 
-    // 5) Estado inicial coherente del botón
+    // 6) Estado inicial del botón
     sincronizarBotonFlotante();
 
-    // 6) Pre-cargar jsPDF para que el PDF salga al instante
+    // 7) Pre-cargar jsPDF
     const precargarPDF = function () {
         cargarJsPDF().catch(function () {
             console.warn('jsPDF no disponible: el PDF no se generará hasta recuperar conexión.');
@@ -1098,6 +1066,14 @@ window.addEventListener('load', function() {
     } else {
         setTimeout(precargarPDF, 1500);
     }
-});
+}
+
+// Ejecutar cuando el DOM esté listo (o de inmediato si ya lo está)
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarApp);
+} else {
+    // El DOM ya está listo (script cargado al final o dinámicamente)
+    inicializarApp();
+}
 
 window.addEventListener('resize', ajustarResponsive);
