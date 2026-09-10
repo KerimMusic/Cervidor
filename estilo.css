@@ -496,3 +496,11 @@ h1,
     .galeria-foto { max-width: 400px; aspect-ratio: 16/9; border-radius: 10px; }
     #galeria-container.visible { margin: 10px auto; }
 }
+
+.Tex-tucita {
+  font-size: 12px;
+  text-align: center;
+  font-style: italic;
+  color: #fcf9f9;
+  margin: 6px 0;
+}
