@@ -112,6 +112,151 @@ function toggleContenido() {
 }
 
 // ============================================================
+//  VISOR DE IMÁGENES DE LA GALERÍA (Lightbox)
+// ============================================================
+
+function crearLightbox() {
+    let lightbox = document.getElementById('lightbox');
+    if (lightbox) return lightbox;
+
+    // Estilos (se inyectan una sola vez)
+    if (!document.getElementById('lightbox-styles')) {
+        const style = document.createElement('style');
+        style.id = 'lightbox-styles';
+        style.textContent = `
+            #galeria-container img { cursor: zoom-in; }
+
+            #lightbox {
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                background: rgba(0, 0, 0, .92);
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity .3s ease, visibility .3s ease;
+                cursor: zoom-out;
+            }
+            #lightbox.activo {
+                opacity: 1;
+                visibility: visible;
+            }
+            #lightbox img {
+                max-width: 95vw;
+                max-height: 90vh;
+                width: auto;
+                height: auto;
+                object-fit: contain;
+                border-radius: 10px;
+                box-shadow: 0 0 45px rgba(0, 0, 0, .85);
+                transform: scale(.85);
+                transition: transform .3s ease;
+                cursor: default;
+            }
+            #lightbox.activo img { transform: scale(1); }
+
+            #lightbox-cerrar {
+                position: absolute;
+                top: 18px;
+                right: 22px;
+                width: 46px;
+                height: 46px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, .15);
+                color: #fff;
+                font-size: 1.7rem;
+                line-height: 1;
+                cursor: pointer;
+                transition: background .25s ease, transform .25s ease;
+            }
+            #lightbox-cerrar:hover {
+                background: rgba(255, 255, 255, .32);
+                transform: rotate(90deg);
+            }
+
+            body.lightbox-abierto { overflow: hidden; }
+
+            @media (max-width: 480px) {
+                #lightbox { padding: 10px; }
+                #lightbox img { max-width: 100vw; max-height: 85vh; border-radius: 6px; }
+                #lightbox-cerrar { top: 10px; right: 12px; width: 40px; height: 40px; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    lightbox = document.createElement('div');
+    lightbox.id = 'lightbox';
+    lightbox.innerHTML = `
+        <button id="lightbox-cerrar" aria-label="Cerrar imagen">&times;</button>
+        <img src="" alt="Imagen ampliada">
+    `;
+    document.body.appendChild(lightbox);
+
+    // Cerrar al hacer clic en el fondo o en la X
+    lightbox.addEventListener('click', function (e) {
+        if (e.target === lightbox || e.target.id === 'lightbox-cerrar') {
+            cerrarLightbox();
+        }
+    });
+
+    // Cerrar con la tecla ESC
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') cerrarLightbox();
+    });
+
+    return lightbox;
+}
+
+function abrirLightbox(src, alt) {
+    if (!src) return;
+    const lightbox = crearLightbox();
+    const img = lightbox.querySelector('img');
+
+    img.src = src;
+    img.alt = alt || 'Imagen de la galería';
+
+    lightbox.classList.add('activo');
+    document.body.classList.add('lightbox-abierto');
+}
+
+function cerrarLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    if (!lightbox || !lightbox.classList.contains('activo')) return;
+
+    lightbox.classList.remove('activo');
+    document.body.classList.remove('lightbox-abierto');
+
+    // Limpiar el src cuando termina la animación
+    setTimeout(function () {
+        if (!lightbox.classList.contains('activo')) {
+            lightbox.querySelector('img').src = '';
+        }
+    }, 320);
+}
+
+// Delegación: funciona con imágenes presentes o añadidas dinámicamente
+document.addEventListener('click', function (e) {
+    const img = e.target.closest('#galeria-container img');
+    if (!img) return;
+
+    e.preventDefault(); // evita navegar si la imagen está dentro de un <a>
+
+    // Soporta lazy-loading (data-src / data-full) y src normal
+    const origen = img.dataset.full || img.dataset.src || img.currentSrc || img.src;
+    abrirLightbox(origen, img.alt);
+});
+
+// ============================================================
 //  INICIALIZACIÓN
 // ============================================================
 
