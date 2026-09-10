@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Barber Shop | Sain Nt</title>
   <link rel="stylesheet" href="estilo.css" />
+
+  <!-- ============================================================
+       Micro-estilos inline para el estado "minimizado" del overlay.
+       Evita el flash visual cuando JS aplica la clase .minimizado.
+       ============================================================ -->
+  <style>
+    #seguimiento-overlay.minimizado {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+  </style>
 </head>
 <body>
 
@@ -131,7 +143,7 @@
   </div>
 
   <!-- ============================================================
-       NUEVO: SEGUIMIENTO DE LA CITA (BLOQUEA TODA LA PÁGINA)
+       SEGUIMIENTO DE LA CITA (BLOQUEA TODA LA PÁGINA)
        ============================================================ -->
   <div id="seguimiento-overlay" aria-hidden="true" role="alertdialog" aria-modal="true" aria-live="assertive">
     <div class="seg-card">
@@ -169,6 +181,8 @@
           <button id="btnBuena" class="seg-btn seg-buena" type="button" disabled>Buena</button>
         </div>
         <p class="seg-nota" id="notaCalificar">Podrás calificar cuando llegue la hora de tu cita.</p>
+
+        <!-- El botón "Cancelar cita" se inyecta aquí automáticamente por JS -->
       </div>
 
       <!-- ---------- PASO 3: GRACIAS ---------- -->
@@ -187,6 +201,18 @@
 
     </div>
   </div>
+
+  <!--
+    Los siguientes elementos se crean dinámicamente por script.js
+    y NO deben declararse aquí para evitar duplicados:
+
+      - #btnCancelarCita              (botón rojo dentro de #pasoCita)
+      - #modal-motivo-overlay         (modal con motivos de cancelación)
+      - #seguimiento-pill             (pill flotante cuando el overlay se minimiza)
+      - #modal-comprobante-overlay    (modal de descarga del PDF)
+      - #lightbox                     (visor de imágenes de la galería)
+      - #bs-toast                     (notificación tipo toast)
+  -->
 
   <script src="script.js"></script>
 </body>
