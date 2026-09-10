@@ -157,6 +157,102 @@ let timerCita         = null;
 let restanteConfirmacion = 0;
 let seguimientoActivo = false;
 
+// NUEVO: para poder restaurar el flujo tras recargar/cerrar la página
+let confirmacionDeadline  = null;            // timestamp absoluto (ms)
+let pasoActualSeguimiento = 'confirmacion';  // 'confirmacion' | 'cita' | 'gracias'
+
+// ============================================================
+//  PERSISTENCIA DEL SEGUIMIENTO (localStorage)
+// ============================================================
+
+const STORAGE_KEY = 'barberia_cita_estado_v1';
+
+// Si han pasado más de estas horas desde la hora de la cita,
+// el estado guardado se descarta automáticamente.
+const HORAS_EXPIRACION = 24;
+
+function guardarEstado() {
+    try {
+        if (!seguimientoActivo || !citaActual) {
+            localStorage.removeItem(STORAGE_KEY);
+            return;
+        }
+
+        const estado = {
+            v: 1,
+            barberoActual:        barberoActual,
+            citaActual:           citaActual,
+            paso:                 pasoActualSeguimiento,
+            confirmacionDeadline: confirmacionDeadline,
+            guardadoEn:           Date.now()
+        };
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+    } catch (e) {
+        console.warn('No se pudo guardar el estado de la cita:', e);
+    }
+}
+
+function leerEstado() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+
+        const estado = JSON.parse(raw);
+
+        if (!estado || estado.v !== 1 || !estado.citaActual) {
+            localStorage.removeItem(STORAGE_KEY);
+            return null;
+        }
+
+        // Descartar estados demasiado antiguos
+        const ts = estado.citaActual.timestamp || 0;
+        if (ts && (Date.now() - ts) > HORAS_EXPIRACION * 3600 * 1000) {
+            localStorage.removeItem(STORAGE_KEY);
+            return null;
+        }
+
+        return estado;
+    } catch (e) {
+        console.warn('No se pudo leer el estado de la cita:', e);
+        return null;
+    }
+}
+
+function borrarEstado() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+}
+
+// Restaura la pantalla donde se quedó el usuario.
+// Devuelve true si había algo que restaurar.
+function restaurarEstado() {
+    const estado = leerEstado();
+    if (!estado) return false;
+
+    barberoActual        = estado.barberoActual || { nombre: '', whatsapp: '', foto: '' };
+    citaActual           = estado.citaActual;
+    seguimientoActivo    = true;
+    confirmacionDeadline = estado.confirmacionDeadline || null;
+
+    prepararOverlaySeguimiento();
+
+    const paso = (estado.paso === 'cita' || estado.paso === 'gracias')
+        ? estado.paso
+        : 'confirmacion';
+
+    pasoActualSeguimiento = paso;
+    mostrarPasoSeguimiento(paso);
+
+    if (paso === 'confirmacion') {
+        iniciarCuentaConfirmacion();
+    } else if (paso === 'cita') {
+        iniciarCuentaCita();
+    }
+
+    mostrarToast('Recuperamos tu cita en proceso 💈', 'ok');
+    return true;
+}
+
 // ============================================================
 //  MODAL DE CITA · Abrir, cerrar y rellenar con el barbero
 // ============================================================
@@ -1203,33 +1299,38 @@ async function generarPDFCita(datos) {
 //  SEGUIMIENTO BLOQUEANTE · Overlay a pantalla completa
 // ============================================================
 
-function iniciarSeguimiento() {
-    if (!citaActual) return;
-
-    seguimientoActivo = true;
-
-    // Bloqueo total
+function prepararOverlaySeguimiento() {
     document.body.classList.add('sin-scroll', 'bloqueado');
 
     const overlay = document.getElementById('seguimiento-overlay');
-    if (!overlay) return;
+    if (!overlay) return null;
 
-    // Rellenar datos del barbero
-    const segFoto     = document.getElementById('segFoto');
-    const segNombre   = document.getElementById('segNombre');
-    const segNombre2  = document.getElementById('segNombre2');
+    const segFoto    = document.getElementById('segFoto');
+    const segNombre  = document.getElementById('segNombre');
+    const segNombre2 = document.getElementById('segNombre2');
 
     if (segFoto)    segFoto.src = barberoActual.foto || '';
     if (segNombre)  segNombre.textContent  = barberoActual.nombre;
     if (segNombre2) segNombre2.textContent = barberoActual.nombre;
 
-    // Mostrar overlay
     overlay.classList.add('activo');
     overlay.setAttribute('aria-hidden', 'false');
+    return overlay;
+}
 
-    // Arrancar en el paso 1
+function iniciarSeguimiento() {
+    if (!citaActual) return;
+
+    seguimientoActivo = true;
+
+    // Marca de tiempo absoluta: sobrevive a recargas
+    confirmacionDeadline = Date.now() + CONFIG.ESPERA_CONFIRMACION * 1000;
+
+    prepararOverlaySeguimiento();
     mostrarPasoSeguimiento('confirmacion');
     iniciarCuentaConfirmacion();
+
+    guardarEstado();
 }
 
 function mostrarPasoSeguimiento(paso) {
@@ -1238,9 +1339,13 @@ function mostrarPasoSeguimiento(paso) {
     const pasoGracias      = document.getElementById('pasoGracias');
     if (!pasoConfirmacion) return;
 
+    pasoActualSeguimiento = paso;
+
     pasoConfirmacion.classList.toggle('oculto', paso !== 'confirmacion');
     pasoCita.classList.toggle('oculto',         paso !== 'cita');
     pasoGracias.classList.toggle('oculto',      paso !== 'gracias');
+
+    guardarEstado();
 }
 
 // ---------- PASO 1: cuenta regresiva de confirmación ----------
@@ -1248,28 +1353,39 @@ function mostrarPasoSeguimiento(paso) {
 function iniciarCuentaConfirmacion() {
     clearInterval(timerConfirmacion);
 
-    restanteConfirmacion = CONFIG.ESPERA_CONFIRMACION;
+    if (!confirmacionDeadline) {
+        confirmacionDeadline = Date.now() + CONFIG.ESPERA_CONFIRMACION * 1000;
+    }
 
+    actualizarCuentaConfirmacion();
+
+    if (restanteConfirmacion > 0) {
+        timerConfirmacion = setInterval(actualizarCuentaConfirmacion, 1000);
+    }
+
+    guardarEstado();
+}
+
+function actualizarCuentaConfirmacion() {
     const contador = document.getElementById('contadorConfirmacion');
     const nota     = document.getElementById('notaConfirmacion');
 
+    restanteConfirmacion = Math.max(
+        0,
+        Math.ceil((confirmacionDeadline - Date.now()) / 1000)
+    );
+
     if (contador) contador.textContent = formatoMMSS(restanteConfirmacion);
-    if (nota)     nota.textContent = 'Tiempo de espera para la confirmación.';
 
-    timerConfirmacion = setInterval(function () {
-        restanteConfirmacion--;
+    if (restanteConfirmacion <= 0) {
+        clearInterval(timerConfirmacion);
+        timerConfirmacion = null;
+        if (nota) nota.textContent =
+            'Se acabó el tiempo de espera. Pulsa "No" para cancelar y agendar de nuevo, o "Sí" si el barbero ya te confirmó.';
+        return;
+    }
 
-        if (restanteConfirmacion <= 0) {
-            restanteConfirmacion = 0;
-            clearInterval(timerConfirmacion);
-            if (contador) contador.textContent = '00:00';
-            if (nota) nota.textContent =
-                'Se acabó el tiempo de espera. Pulsa "No" para cancelar y agendar de nuevo, o "Sí" si el barbero ya te confirmó.';
-            return;
-        }
-
-        if (contador) contador.textContent = formatoMMSS(restanteConfirmacion);
-    }, 1000);
+    if (nota) nota.textContent = 'Tiempo de espera para la confirmación.';
 }
 
 // ---------- PASO 2: cuenta regresiva hasta la cita ----------
@@ -1307,6 +1423,8 @@ function iniciarCuentaCita() {
     timerCita = setInterval(function () {
         actualizarCuentaCita(fechaCita);
     }, 1000);
+
+    guardarEstado();
 }
 
 function actualizarCuentaCita(fechaCita) {
@@ -1386,6 +1504,8 @@ function cancelarSeguimiento(mensaje) {
     // Resetear estado
     seguimientoActivo = false;
     citaActual = null;
+    confirmacionDeadline = null;
+    borrarEstado();
 
     // Ocultar overlay
     const overlay = document.getElementById('seguimiento-overlay');
@@ -1472,10 +1592,16 @@ function inicializarSeguimiento() {
 function inicializarApp() {
     crearEstilosBotonFlotante();
     ajustarResponsive();
-    inicializarPreagenda();
     inicializarPerfiles();
     inicializarModalCita();
     inicializarSeguimiento();
+
+    // Si había una cita en proceso, retomamos donde se quedó.
+    // Si no, activamos la pre-agenda normal.
+    const restaurado = restaurarEstado();
+    if (!restaurado) {
+        inicializarPreagenda();
+    }
 
     const botonAgendar = document.getElementById('agendarBtn');
     if (botonAgendar) botonAgendar.addEventListener('click', enviarWhatsApp);
@@ -1503,3 +1629,36 @@ if (document.readyState === 'loading') {
 }
 
 window.addEventListener('resize', ajustarResponsive);
+
+// ============================================================
+//  SINCRONIZACIÓN ENTRE PESTAÑAS (opcional)
+//  Si otra pestaña cancela/finaliza la cita, esta se libera.
+// ============================================================
+
+window.addEventListener('storage', function (e) {
+    if (e.key !== STORAGE_KEY) return;
+
+    // Si el estado se borró desde otra pestaña y aquí lo teníamos activo,
+    // liberamos esta pestaña sin recargar.
+    if (!e.newValue && seguimientoActivo) {
+        seguimientoActivo = false;
+        citaActual = null;
+        confirmacionDeadline = null;
+
+        clearInterval(timerConfirmacion);
+        clearInterval(timerCita);
+        timerConfirmacion = null;
+        timerCita = null;
+        restanteConfirmacion = 0;
+
+        const overlay = document.getElementById('seguimiento-overlay');
+        if (overlay) {
+            overlay.classList.remove('activo');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
+        document.body.classList.remove('sin-scroll', 'bloqueado');
+        mostrarPasoSeguimiento('confirmacion');
+        mostrarToast('Tu cita fue actualizada en otra pestaña 💈', 'ok');
+    }
+});
