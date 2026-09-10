@@ -1,419 +1,532 @@
 /* ============================================================
    FUENTES EXTERNAS
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600;700&display=swap');
 
 /* ============================================================
    RESETEO Y BASE
    ============================================================ */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* ============================================================
-   FONDO DE LA PÁGINA
+   BODY
    ============================================================ */
 body {
-    min-height: 100vh;
-    background: #0a0a0a;
-    background-image: radial-gradient(circle at 20% 30%, #1a1a1a 0%, #0a0a0a 90%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Poppins', sans-serif;
-    padding: 20px;
-    position: relative;
+  min-height: 100vh;
+  font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0a0a;
+  background-image: radial-gradient(circle at top, #2a2118 0%, #0d0d0d 60%, #000 100%);
+  color: #f5e6d3;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* ============================================================
+   BLOQUE 1 · GRID DE PERFILES
+   ============================================================ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.perfil {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 12px;
+  border-radius: 20px;
+  background: rgba(20, 15, 10, 0.6);
+  border: 1px solid rgba(201, 160, 112, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.perfil:hover {
+  transform: translateY(-5px);
+  border-color: rgba(201, 160, 112, 0.4);
+  box-shadow: 0 15px 40px rgba(139, 90, 43, 0.35);
+}
+
+.photo-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 14px;
+}
+
+.photo-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #8b5a2b, #c9a070, #3b2a1f);
+  z-index: -1;
+  filter: blur(14px);
+  opacity: 0.7;
+}
+
+.photo {
+  width: 110px;
+  height: 110px;
+  border-radius: 20px;
+  object-fit: cover;
+  display: block;
+  border: 2px solid rgba(201, 160, 112, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.photo:hover {
+  transform: scale(1.03);
+  box-shadow: 0 15px 40px rgba(139, 90, 43, 0.6);
+}
+
+.name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  background: linear-gradient(135deg, #f5e6d3, #c9a070);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+
+.Whatsapp {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #a08466;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.Whatsapp::before {
+  content: '📱';
+  font-size: 0.8rem;
+}
+
+.age {
+  font-size: 0.78rem;
+  color: #8a755a;
+  letter-spacing: 0.2px;
+  margin-bottom: 16px;
+}
+
+.age span {
+  font-weight: 600;
+  color: #c9a070;
+}
+
+.btn {
+  padding: 10px 22px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #0d0d0d;
+  background: linear-gradient(135deg, #c9a070, #f5e6d3, #c9a070);
+  background-size: 200% 200%;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  box-shadow: 0 8px 24px rgba(201, 160, 112, 0.35);
+  transition: all 0.35s ease;
+}
+
+.btn:hover {
+  background-position: 100% 50%;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(201, 160, 112, 0.6);
+}
+
+.btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(201, 160, 112, 0.4);
 }
 
 /* ============================================================
    CONTENEDOR PRINCIPAL
    ============================================================ */
 #contenedor-principal {
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* ============================================================
-   FORMULARIO (visible por defecto)
-   ============================================================ */
-#formulario {
-    transition: all 0.6s ease;
-    overflow: hidden;
-    max-height: 1500px;
-    opacity: 1;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-#formulario.oculto {
-    max-height: 0;
-    opacity: 0;
-    margin: 0;
-    padding: 0;
-    pointer-events: none;
-}
-
-/* ============================================================
-   GALERÍA (oculta por defecto)
+   GALERÍA
    ============================================================ */
 #galeria-container {
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    box-sizing: border-box;
-    transition: all 0.6s ease;
-    overflow: hidden;
-    max-height: 0;
-    opacity: 0;
-    margin: 0;
-    padding: 0;
-    pointer-events: none;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+  transition: all 0.6s ease;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
 }
 
 #galeria-container.visible {
-    max-height: 5000px;
-    opacity: 1;
-    margin: 20px auto 10px;
-    padding: 0 10px;
-    pointer-events: auto;
+  max-height: 5000px;
+  opacity: 1;
+  margin: 20px auto 10px;
+  padding: 0 10px;
+  pointer-events: auto;
 }
 
 /* ============================================================
    IMAGEN CIRCULAR
    ============================================================ */
 .imagen-cita {
-    display: block;
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin: 0 auto 5px;
-    border: 4px solid #D7A86E;
-    box-shadow: 0 0 30px rgba(215, 168, 110, 0.3);
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  display: block;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 5px;
+  border: 4px solid #D7A86E;
+  box-shadow: 0 0 30px rgba(215, 168, 110, 0.3);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .imagen-cita:hover {
-    transform: scale(1.05) rotate(-2deg);
-    box-shadow: 0 0 50px rgba(215, 168, 110, 0.5);
+  transform: scale(1.05) rotate(-2deg);
+  box-shadow: 0 0 50px rgba(215, 168, 110, 0.5);
 }
 
 /* ============================================================
-   TÍTULO
+   TÍTULOS
    ============================================================ */
 h1 {
-    font-family: 'Playfair Display', serif;
-    color: #D7A86E;
-    font-size: clamp(1.8rem, 5vw, 3.5rem);
-    font-weight: 700;
-    letter-spacing: clamp(1px, 0.3vw, 3px);
-    text-shadow: 0 4px 20px rgba(215, 168, 110, 0.2);
-    margin: 0 0 20px 0;
-    line-height: 1.2;
-    text-transform: uppercase;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    max-width: 100%;
-    text-align: center;
+  font-family: 'Playfair Display', serif;
+  color: #D7A86E;
+  font-size: clamp(1.8rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: clamp(1px, 0.3vw, 3px);
+  text-shadow: 0 4px 20px rgba(215, 168, 110, 0.2);
+  margin: 0 0 20px 0;
+  line-height: 1.2;
+  text-transform: uppercase;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  text-align: center;
 }
 
 /* ============================================================
    LABELS
    ============================================================ */
 .label-banner {
-    display: block;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #D7A86E;
-    margin-bottom: 4px;
-    text-align: left;
-    padding-left: 5px;
-    opacity: 0.8;
-    width: 100%;
-    max-width: 440px;
+  display: block;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #D7A86E;
+  margin-bottom: 4px;
+  text-align: left;
+  padding-left: 5px;
+  opacity: 0.8;
+  width: 100%;
+  max-width: 440px;
 }
 
 /* ============================================================
-   INPUTS (nombre, servicio, fecha, hora)
+   INPUTS
    ============================================================ */
 #nombreInput,
 #servicioInput {
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 1px solid rgba(215, 168, 110, 0.25);
-    border-radius: 50px;
-    padding: 15px 22px;
-    width: 100%;
-    max-width: 440px;
-    font-size: 1rem;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 300;
-    color: #f0e6d3;
-    outline: none;
-    transition: all 0.3s ease;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
-    margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(215, 168, 110, 0.25);
+  border-radius: 50px;
+  padding: 15px 22px;
+  width: 100%;
+  max-width: 440px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  color: #f0e6d3;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+  margin-bottom: 14px;
 }
 
 #nombreInput::placeholder,
 #servicioInput::placeholder {
-    color: rgba(240, 230, 211, 0.5);
-    font-weight: 300;
-    letter-spacing: 0.5px;
+  color: rgba(240, 230, 211, 0.5);
+  font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
 #nombreInput:focus,
 #servicioInput:focus {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: #D7A86E;
-    box-shadow: 0 0 25px rgba(215, 168, 110, 0.15), inset 0 2px 8px rgba(0, 0, 0, 0.4);
-    color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #D7A86E;
+  box-shadow: 0 0 25px rgba(215, 168, 110, 0.15), inset 0 2px 8px rgba(0, 0, 0, 0.4);
+  color: #fff;
 }
 
 #fechaInput,
 #horaInput {
-    background: linear-gradient(145deg, #2a1f1a, #1a1210);
-    border: 2px solid rgba(215, 168, 110, 0.4);
-    border-radius: 50px;
-    padding: 14px 22px;
-    width: 100%;
-    max-width: 440px;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 1.1rem;
-    color: #f0e6d3;
-    outline: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 2px 8px rgba(0, 0, 0, 0.4);
-    margin-bottom: 18px;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    text-align: center;
-    letter-spacing: 1px;
-    position: relative;
+  background: linear-gradient(145deg, #2a1f1a, #1a1210);
+  border: 2px solid rgba(215, 168, 110, 0.4);
+  border-radius: 50px;
+  padding: 14px 22px;
+  width: 100%;
+  max-width: 440px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #f0e6d3;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 2px 8px rgba(0, 0, 0, 0.4);
+  margin-bottom: 18px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+  letter-spacing: 1px;
+  position: relative;
 }
 
 #fechaInput::-webkit-calendar-picker-indicator,
 #horaInput::-webkit-calendar-picker-indicator {
-    filter: invert(1) brightness(100%) sepia(30%) hue-rotate(10deg) saturate(300%);
-    cursor: pointer;
-    padding: 5px;
-    opacity: 0.6;
-    margin-left: 8px;
+  filter: invert(1) brightness(100%) sepia(30%) hue-rotate(10deg) saturate(300%);
+  cursor: pointer;
+  padding: 5px;
+  opacity: 0.6;
+  margin-left: 8px;
 }
 
 #fechaInput:hover,
 #horaInput:hover {
-    border-color: #D7A86E;
-    background: linear-gradient(145deg, #3d2c25, #241a16);
-    box-shadow: 0 8px 25px rgba(215, 168, 110, 0.2), inset 0 2px 8px rgba(0, 0, 0, 0.4);
-    transform: translateY(-2px);
+  border-color: #D7A86E;
+  background: linear-gradient(145deg, #3d2c25, #241a16);
+  box-shadow: 0 8px 25px rgba(215, 168, 110, 0.2), inset 0 2px 8px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
 }
 
 #fechaInput:focus,
 #horaInput:focus {
-    border-color: #D7A86E;
-    background: linear-gradient(145deg, #3d2c25, #241a16);
-    box-shadow: 0 0 30px rgba(215, 168, 110, 0.25), inset 0 2px 8px rgba(0, 0, 0, 0.4);
-    transform: scale(1.02);
+  border-color: #D7A86E;
+  background: linear-gradient(145deg, #3d2c25, #241a16);
+  box-shadow: 0 0 30px rgba(215, 168, 110, 0.25), inset 0 2px 8px rgba(0, 0, 0, 0.4);
+  transform: scale(1.02);
 }
 
 #fechaInput:valid,
 #horaInput:valid {
-    color: #f0e6d3;
+  color: #f0e6d3;
 }
 
 /* ============================================================
-   TEXTO DE WHATSAPP
+   TEXTO WHATSAPP
    ============================================================ */
 .Tex-tucita {
-    font-size: 12px;
-    text-align: center;
-    font-style: italic;
-    color: #fcf9f9;
-    margin: 6px 0;
+  font-size: 12px;
+  text-align: center;
+  font-style: italic;
+  color: #fcf9f9;
+  margin: 6px 0;
 }
 
 /* ============================================================
-   BOTÓN AGENDAR (dorado)
+   BOTÓN AGENDAR (dentro del modal)
    ============================================================ */
 #agendarBtn {
-    background: linear-gradient(145deg, #D7A86E, #b8925a);
-    border: none;
-    border-radius: 50px;
-    padding: 16px 28px;
-    width: 100%;
-    max-width: 440px;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    color: #0a0a0a;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 8px 25px rgba(215, 168, 110, 0.3);
-    margin-top: 16px;
-    margin-bottom: 4px;
-    position: relative;
-    overflow: hidden;
+  background: linear-gradient(145deg, #D7A86E, #b8925a);
+  border: none;
+  border-radius: 50px;
+  padding: 16px 28px;
+  width: 100%;
+  max-width: 440px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: #0a0a0a;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 8px 25px rgba(215, 168, 110, 0.3);
+  margin-top: 16px;
+  margin-bottom: 4px;
+  position: relative;
+  overflow: hidden;
 }
 
 #agendarBtn:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 35px rgba(215, 168, 110, 0.5);
-    background: linear-gradient(145deg, #e2bc82, #c49e6a);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(215, 168, 110, 0.5);
+  background: linear-gradient(145deg, #e2bc82, #c49e6a);
 }
 
 #agendarBtn:active {
-    transform: scale(0.96);
-    box-shadow: 0 4px 15px rgba(215, 168, 110, 0.2);
+  transform: scale(0.96);
+  box-shadow: 0 4px 15px rgba(215, 168, 110, 0.2);
 }
 
 #agendarBtn::after {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 
 #agendarBtn:hover::after {
-    opacity: 1;
+  opacity: 1;
 }
 
 /* ============================================================
    BOTÓN "VER MÁS"
    ============================================================ */
 #button2 {
-    background: linear-gradient(145deg, #D7A86E, #b8925a);
-    border: none;
-    border-radius: 50px;
-    padding: 14px 28px;
-    width: 100%;
-    max-width: 440px;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #0a0a0a;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 8px 25px rgba(215, 168, 110, 0.3);
-    margin-top: 24px;
-    margin-bottom: 12px;
-    position: relative;
-    overflow: hidden;
+  background: linear-gradient(145deg, #D7A86E, #b8925a);
+  border: none;
+  border-radius: 50px;
+  padding: 14px 28px;
+  width: 100%;
+  max-width: 440px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #0a0a0a;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 8px 25px rgba(215, 168, 110, 0.3);
+  margin-top: 24px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
 }
 
 #button2:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 35px rgba(215, 168, 110, 0.5);
-    background: linear-gradient(145deg, #e2bc82, #c49e6a);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(215, 168, 110, 0.5);
+  background: linear-gradient(145deg, #e2bc82, #c49e6a);
 }
 
 #button2:active {
-    transform: scale(0.96);
-    box-shadow: 0 4px 15px rgba(215, 168, 110, 0.2);
+  transform: scale(0.96);
+  box-shadow: 0 4px 15px rgba(215, 168, 110, 0.2);
 }
 
 #button2::after {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
 }
 
 #button2:hover::after {
-    opacity: 1;
+  opacity: 1;
 }
 
 /* ============================================================
    GALERÍA DE FOTOS
    ============================================================ */
 .galeria-titulo {
-    font-family: 'Playfair Display', serif;
-    color: #D7A86E;
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 20px;
-    text-shadow: 0 2px 10px rgba(215, 168, 110, 0.2);
-    letter-spacing: 1px;
-    width: 100%;
+  font-family: 'Playfair Display', serif;
+  color: #D7A86E;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 10px rgba(215, 168, 110, 0.2);
+  letter-spacing: 1px;
+  width: 100%;
 }
 
 .galeria-grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
 }
 
 .galeria-foto {
-    display: block;
-    margin: 0 auto;
-    width: 100%;
-    max-width: 500px;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-    background: #1a1a1a;
-    border: 1px solid rgba(215, 168, 110, 0.15);
+  display: block;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  background: #1a1a1a;
+  border: 1px solid rgba(215, 168, 110, 0.15);
 }
 
 .galeria-foto:hover {
-    transform: scale(1.03);
-    box-shadow: 0 8px 35px rgba(215, 168, 110, 0.25);
-    border-color: rgba(215, 168, 110, 0.4);
+  transform: scale(1.03);
+  box-shadow: 0 8px 35px rgba(215, 168, 110, 0.25);
+  border-color: rgba(215, 168, 110, 0.4);
+}
+
+.galeria-foto.oculta {
+  display: none;
 }
 
 /* ============================================================
    ANIMACIÓN DE ENTRADA
    ============================================================ */
 @keyframes fadeInUp {
-    0% {
-        opacity: 0;
-        transform: translateY(40px) scale(0.96);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .imagen-cita,
@@ -424,184 +537,252 @@ h1,
 #horaInput,
 #servicioInput,
 #agendarBtn {
-    animation: fadeInUp 0.8s ease forwards;
+  animation: fadeInUp 0.8s ease forwards;
 }
 
 .label-banner { animation-delay: 0.05s; }
-#nombreInput { animation-delay: 0.1s; }
-#fechaInput { animation-delay: 0.15s; }
-#horaInput { animation-delay: 0.2s; }
-#servicioInput { animation-delay: 0.25s; }
-#agendarBtn { animation-delay: 0.3s; }
+#nombreInput  { animation-delay: 0.1s; }
+#fechaInput   { animation-delay: 0.15s; }
+#horaInput    { animation-delay: 0.2s; }
+#servicioInput{ animation-delay: 0.25s; }
+#agendarBtn   { animation-delay: 0.3s; }
 
 /* ============================================================
-   RESPONSIVE - TODOS LOS DISPOSITIVOS
+   MODAL DE CITA
    ============================================================ */
-
-/* Móviles muy pequeños (≤ 375px) */
-@media (max-width: 375px) {
-    body { padding: 12px; }
-    .imagen-cita { width: 80px; height: 80px; border-width: 3px; }
-    h1 { font-size: 1.6rem; letter-spacing: 1.5px; margin-bottom: 16px; }
-    .label-banner { font-size: 0.7rem; letter-spacing: 1px; max-width: 100%; }
-    #nombreInput, #servicioInput { padding: 11px 16px; font-size: 0.85rem; margin-bottom: 10px; max-width: 100%; }
-    #fechaInput, #horaInput { padding: 10px 16px; font-size: 0.85rem; margin-bottom: 14px; max-width: 100%; }
-    #agendarBtn, #button2 { padding: 12px 16px; font-size: 0.9rem; letter-spacing: 1.5px; max-width: 100%; }
-    #button2 { margin-top: 18px; }
-    .galeria-titulo { font-size: 1.2rem; }
-    .galeria-foto { max-width: 100%; border-radius: 12px; aspect-ratio: 4/3; }
-    #galeria-container.visible { padding: 0 4px; }
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9998;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-/* Móviles medianos (376px - 480px) */
-@media (min-width: 376px) and (max-width: 480px) {
-    body { padding: 16px; }
-    .imagen-cita { width: 100px; height: 100px; border-width: 3px; }
-    h1 { font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 18px; }
-    .label-banner { max-width: 100%; }
-    #nombreInput, #servicioInput { padding: 13px 18px; font-size: 0.9rem; margin-bottom: 12px; max-width: 100%; }
-    #fechaInput, #horaInput { padding: 12px 18px; font-size: 0.9rem; margin-bottom: 16px; max-width: 100%; }
-    #agendarBtn, #button2 { padding: 14px 20px; font-size: 1rem; letter-spacing: 2px; max-width: 100%; }
-    #button2 { margin-top: 20px; }
-    .galeria-titulo { font-size: 1.4rem; }
-    .galeria-foto { max-width: 100%; }
+.modal-overlay.activo {
+  opacity: 1;
+  visibility: visible;
 }
 
-/* Tablets pequeñas (481px - 768px) */
-@media (min-width: 481px) and (max-width: 768px) {
-    body { padding: 20px; }
-    .imagen-cita { width: 120px; height: 120px; }
-    h1 { font-size: 2rem; letter-spacing: 2.5px; margin-bottom: 18px; }
-    #nombreInput, #servicioInput { padding: 14px 20px; font-size: 0.95rem; margin-bottom: 13px; max-width: 400px; }
-    #fechaInput, #horaInput { padding: 13px 20px; font-size: 1rem; margin-bottom: 17px; max-width: 400px; }
-    #agendarBtn, #button2 { padding: 15px 24px; font-size: 1rem; letter-spacing: 2.5px; max-width: 400px; }
-    .label-banner { max-width: 400px; }
-    .galeria-titulo { font-size: 1.6rem; }
-    .galeria-foto { max-width: 450px; }
+.modal-contenido {
+  position: relative;
+  background: linear-gradient(160deg, #1c140e 0%, #0d0907 100%);
+  border: 1px solid rgba(215, 168, 110, 0.25);
+  border-radius: 24px;
+  padding: 30px 24px 26px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(215, 168, 110, 0.08);
+  text-align: center;
+  transform: translateY(30px) scale(0.94);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Tablets grandes / laptops pequeñas (769px - 1024px) */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .imagen-cita { width: 140px; height: 140px; }
-    h1 { font-size: 2.6rem; }
-    #nombreInput, #servicioInput { font-size: 1rem; padding: 15px 22px; max-width: 480px; }
-    #fechaInput, #horaInput { font-size: 1.1rem; padding: 14px 22px; max-width: 480px; }
-    #agendarBtn, #button2 { font-size: 1.1rem; padding: 16px 28px; max-width: 480px; }
-    .label-banner { max-width: 480px; }
-    .galeria-foto { max-width: 500px; }
+.modal-overlay.activo .modal-contenido {
+  transform: translateY(0) scale(1);
 }
 
-/* Escritorio (≥ 1025px) */
-@media (min-width: 1025px) {
-    .imagen-cita { width: 130px; height: 130px; }
-    h1 { font-size: 2.4rem; }
-    #nombreInput, #servicioInput { font-size: 1rem; padding: 15px 22px; max-width: 440px; }
-    #fechaInput, #horaInput { font-size: 1.1rem; padding: 14px 22px; max-width: 440px; }
-    #agendarBtn, #button2 { font-size: 1.1rem; padding: 16px 28px; max-width: 440px; }
-    .label-banner { max-width: 440px; }
-    .galeria-foto { max-width: 550px; }
+/* Scrollbar del modal */
+.modal-contenido::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-contenido::-webkit-scrollbar-thumb {
+  background: rgba(215, 168, 110, 0.4);
+  border-radius: 10px;
+}
+.modal-contenido::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-/* Modo paisaje en móviles (altura reducida) */
-@media (max-height: 700px) and (orientation: landscape) {
-    body { padding: 10px 20px; }
-    .imagen-cita { width: 60px; height: 60px; border-width: 2px; margin-bottom: 2px; }
-    h1 { font-size: 1.4rem; margin-bottom: 10px; letter-spacing: 1.5px; }
-    .label-banner { font-size: 0.65rem; margin-bottom: 2px; max-width: 500px; }
-    #nombreInput, #servicioInput { padding: 8px 14px; font-size: 0.8rem; margin-bottom: 6px; max-width: 500px; }
-    #fechaInput, #horaInput { padding: 8px 14px; font-size: 0.8rem; margin-bottom: 8px; max-width: 500px; }
-    #agendarBtn, #button2 { padding: 10px 16px; font-size: 0.85rem; letter-spacing: 1.5px; max-width: 500px; }
-    .galeria-titulo { font-size: 1rem; margin-bottom: 8px; }
-    .galeria-foto { max-width: 400px; aspect-ratio: 16/9; border-radius: 10px; }
-    #galeria-container.visible { margin: 10px auto; }
+/* Foto circular del barbero dentro del modal */
+.modal-contenido .imagen-cita {
+  width: 100px;
+  height: 100px;
+  border-width: 3px;
+  margin-bottom: 12px;
+}
+
+/* Título del modal */
+.modal-titulo {
+  font-family: 'Playfair Display', serif;
+  color: #D7A86E;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  text-align: center;
+  text-shadow: 0 4px 20px rgba(215, 168, 110, 0.2);
+}
+
+.modal-titulo span {
+  background: linear-gradient(135deg, #f5e6d3, #c9a070);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Texto de WhatsApp del barbero */
+.modal-whats {
+  font-size: 0.8rem;
+  color: #a08466;
+  letter-spacing: 0.5px;
+  margin-bottom: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid rgba(215, 168, 110, 0.2);
+  border-radius: 50px;
+  background: rgba(215, 168, 110, 0.05);
+}
+
+.modal-whats::before {
+  content: '📱';
+  font-size: 0.85rem;
+}
+
+.modal-whats strong {
+  color: #D7A86E;
+  font-weight: 600;
+}
+
+/* Botón cerrar */
+.cerrar-modal {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  width: 38px;
+  height: 38px;
+  background: rgba(215, 168, 110, 0.1);
+  border: 1px solid rgba(215, 168, 110, 0.25);
+  border-radius: 50%;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: #D7A86E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  padding: 0;
+}
+
+.cerrar-modal:hover {
+  background: rgba(215, 168, 110, 0.25);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* Inputs dentro del modal: heredan los estilos de arriba */
+.modal-contenido input {
+  width: 100%;
+  max-width: 100%;
+}
+
+.modal-contenido .label-banner {
+  max-width: 100%;
+}
+
+.modal-contenido #agendarBtn {
+  max-width: 100%;
 }
 
 /* ============================================================
-   PANTALLA DE PRE-AGENDA (cierre después de las 9:10 pm)
+   PANTALLA DE PRE-AGENDA
    ============================================================ */
 #preagenda-overlay {
-    display: none;                 /* se activa con body.cerrado */
-    position: fixed;
-    inset: 0;                      /* top/right/bottom/left: 0 */
-    z-index: 9999;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 16px;
-    padding: 24px;
-    background: #0a0a0a;
-    background-image: radial-gradient(circle at 50% 40%, #1a1a1a 0%, #0a0a0a 90%);
-    color: #f0e6d3;
-    overflow-y: auto;
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  padding: 24px;
+  background: #0a0a0a;
+  background-image: radial-gradient(circle at 50% 40%, #1a1a1a 0%, #0a0a0a 90%);
+  color: #f0e6d3;
+  overflow-y: auto;
 }
 
 #preagenda-overlay .imagen-cita {
-    width: 130px;
-    height: 130px;
-    margin-bottom: 10px;
-    animation: fadeInUp 0.8s ease forwards;
+  width: 130px;
+  height: 130px;
+  margin-bottom: 10px;
+  animation: fadeInUp 0.8s ease forwards;
 }
 
 #preagenda-overlay h2 {
-    font-family: 'Playfair Display', serif;
-    color: #D7A86E;
-    font-size: clamp(1.6rem, 5vw, 2.4rem);
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    text-shadow: 0 4px 20px rgba(215, 168, 110, 0.25);
-    max-width: 90%;
-    opacity: 0;
-    animation: fadeInUp 0.8s ease 0.1s forwards;
+  font-family: 'Playfair Display', serif;
+  color: #D7A86E;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-shadow: 0 4px 20px rgba(215, 168, 110, 0.25);
+  max-width: 90%;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 0.1s forwards;
 }
 
 #preagenda-overlay p {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 300;
-    font-size: 1rem;
-    line-height: 1.5;
-    color: rgba(240, 230, 211, 0.85);
-    max-width: 420px;
-    opacity: 0;
-    animation: fadeInUp 0.8s ease 0.2s forwards;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(240, 230, 211, 0.85);
+  max-width: 420px;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 0.2s forwards;
 }
 
 #preagenda-overlay p strong {
-    color: #D7A86E;
-    font-weight: 600;
+  color: #D7A86E;
+  font-weight: 600;
 }
 
 #preagendarBtn {
-    margin-top: 10px;
-    background: linear-gradient(145deg, #D7A86E, #b8925a);
-    border: none;
-    border-radius: 50px;
-    padding: 16px 40px;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    color: #0a0a0a;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 8px 25px rgba(215, 168, 110, 0.35);
-    position: relative;
-    overflow: hidden;
-    opacity: 0;
-    animation: fadeInUp 0.8s ease 0.3s forwards;
+  margin-top: 10px;
+  background: linear-gradient(145deg, #D7A86E, #b8925a);
+  border: none;
+  border-radius: 50px;
+  padding: 16px 40px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: #0a0a0a;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 8px 25px rgba(215, 168, 110, 0.35);
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 0.3s forwards;
 }
 
 #preagendarBtn:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 12px 35px rgba(215, 168, 110, 0.55);
-    background: linear-gradient(145deg, #e2bc82, #c49e6a);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 35px rgba(215, 168, 110, 0.55);
+  background: linear-gradient(145deg, #e2bc82, #c49e6a);
 }
 
 #preagendarBtn:active {
-    transform: scale(0.96);
-    box-shadow: 0 4px 15px rgba(215, 168, 110, 0.25);
+  transform: scale(0.96);
+  box-shadow: 0 4px 15px rgba(215, 168, 110, 0.25);
 }
 
 /* ============================================================
@@ -609,17 +790,154 @@ h1,
    ============================================================ */
 body.cerrado #contenedor-principal,
 body.cerrado #button2 {
-    display: none !important;      /* oculta TODA la página */
+  display: none !important;
 }
 
 body.cerrado #preagenda-overlay {
-    display: flex;                 /* solo se ve la pantalla de pre-agenda */
+  display: flex;
 }
 
-/* Responsive del overlay de pre-agenda */
+/* ============================================================
+   RESPONSIVE · Móviles muy pequeños (≤ 375px)
+   ============================================================ */
+@media (max-width: 375px) {
+  body { padding: 12px; }
+  .imagen-cita { width: 80px; height: 80px; border-width: 3px; }
+  h1 { font-size: 1.6rem; letter-spacing: 1.5px; margin-bottom: 16px; }
+  .label-banner { font-size: 0.7rem; letter-spacing: 1px; max-width: 100%; }
+  #nombreInput, #servicioInput { padding: 11px 16px; font-size: 0.85rem; margin-bottom: 10px; max-width: 100%; }
+  #fechaInput, #horaInput { padding: 10px 16px; font-size: 0.85rem; margin-bottom: 14px; max-width: 100%; }
+  #agendarBtn, #button2 { padding: 12px 16px; font-size: 0.9rem; letter-spacing: 1.5px; max-width: 100%; }
+  #button2 { margin-top: 18px; }
+  .galeria-titulo { font-size: 1.2rem; }
+  .galeria-foto { max-width: 100%; border-radius: 12px; aspect-ratio: 4/3; }
+  #galeria-container.visible { padding: 0 4px; }
+
+  .modal-contenido { padding: 22px 16px 20px; border-radius: 18px; }
+  .modal-contenido .imagen-cita { width: 78px; height: 78px; }
+  .modal-titulo { font-size: 1.1rem; }
+  .modal-whats { font-size: 0.72rem; padding: 5px 10px; }
+  .cerrar-modal { width: 32px; height: 32px; font-size: 19px; top: 8px; right: 10px; }
+}
+
+/* ============================================================
+   RESPONSIVE · Móviles medianos (376px - 480px)
+   ============================================================ */
+@media (min-width: 376px) and (max-width: 480px) {
+  body { padding: 16px; }
+  .imagen-cita { width: 100px; height: 100px; border-width: 3px; }
+  h1 { font-size: 1.8rem; letter-spacing: 2px; margin-bottom: 18px; }
+  .label-banner { max-width: 100%; }
+  #nombreInput, #servicioInput { padding: 13px 18px; font-size: 0.9rem; margin-bottom: 12px; max-width: 100%; }
+  #fechaInput, #horaInput { padding: 12px 18px; font-size: 0.9rem; margin-bottom: 16px; max-width: 100%; }
+  #agendarBtn, #button2 { padding: 14px 20px; font-size: 1rem; letter-spacing: 2px; max-width: 100%; }
+  #button2 { margin-top: 20px; }
+  .galeria-titulo { font-size: 1.4rem; }
+  .galeria-foto { max-width: 100%; }
+
+  .modal-contenido { padding: 26px 20px 22px; }
+  .modal-contenido .imagen-cita { width: 90px; height: 90px; }
+  .modal-titulo { font-size: 1.2rem; }
+}
+
+/* ============================================================
+   RESPONSIVE · Tablets pequeñas (481px - 768px)
+   ============================================================ */
+@media (min-width: 481px) and (max-width: 768px) {
+  body { padding: 20px; }
+  .imagen-cita { width: 120px; height: 120px; }
+  h1 { font-size: 2rem; letter-spacing: 2.5px; margin-bottom: 18px; }
+  #nombreInput, #servicioInput { padding: 14px 20px; font-size: 0.95rem; margin-bottom: 13px; max-width: 400px; }
+  #fechaInput, #horaInput { padding: 13px 20px; font-size: 1rem; margin-bottom: 17px; max-width: 400px; }
+  #agendarBtn, #button2 { padding: 15px 24px; font-size: 1rem; letter-spacing: 2.5px; max-width: 400px; }
+  .label-banner { max-width: 400px; }
+  .galeria-titulo { font-size: 1.6rem; }
+  .galeria-foto { max-width: 450px; }
+}
+
+/* ============================================================
+   RESPONSIVE · Tablets grandes / laptops pequeñas (769px - 1024px)
+   ============================================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .imagen-cita { width: 140px; height: 140px; }
+  h1 { font-size: 2.6rem; }
+  #nombreInput, #servicioInput { font-size: 1rem; padding: 15px 22px; max-width: 480px; }
+  #fechaInput, #horaInput { font-size: 1.1rem; padding: 14px 22px; max-width: 480px; }
+  #agendarBtn, #button2 { font-size: 1.1rem; padding: 16px 28px; max-width: 480px; }
+  .label-banner { max-width: 480px; }
+  .galeria-foto { max-width: 500px; }
+}
+
+/* ============================================================
+   RESPONSIVE · Escritorio (≥ 1025px)
+   ============================================================ */
+@media (min-width: 1025px) {
+  .imagen-cita { width: 130px; height: 130px; }
+  h1 { font-size: 2.4rem; }
+  #nombreInput, #servicioInput { font-size: 1rem; padding: 15px 22px; max-width: 440px; }
+  #fechaInput, #horaInput { font-size: 1.1rem; padding: 14px 22px; max-width: 440px; }
+  #agendarBtn, #button2 { font-size: 1.1rem; padding: 16px 28px; max-width: 440px; }
+  .label-banner { max-width: 440px; }
+  .galeria-foto { max-width: 550px; }
+}
+
+/* ============================================================
+   RESPONSIVE · Modo paisaje en móviles
+   ============================================================ */
+@media (max-height: 700px) and (orientation: landscape) {
+  body { padding: 10px 20px; }
+  .imagen-cita { width: 60px; height: 60px; border-width: 2px; margin-bottom: 2px; }
+  h1 { font-size: 1.4rem; margin-bottom: 10px; letter-spacing: 1.5px; }
+  .label-banner { font-size: 0.65rem; margin-bottom: 2px; max-width: 500px; }
+  #nombreInput, #servicioInput { padding: 8px 14px; font-size: 0.8rem; margin-bottom: 6px; max-width: 500px; }
+  #fechaInput, #horaInput { padding: 8px 14px; font-size: 0.8rem; margin-bottom: 8px; max-width: 500px; }
+  #agendarBtn, #button2 { padding: 10px 16px; font-size: 0.85rem; letter-spacing: 1.5px; max-width: 500px; }
+  .galeria-titulo { font-size: 1rem; margin-bottom: 8px; }
+  .galeria-foto { max-width: 400px; aspect-ratio: 16/9; border-radius: 10px; }
+  #galeria-container.visible { margin: 10px auto; }
+
+  .modal-contenido { max-height: 96vh; padding: 18px 20px; }
+  .modal-contenido .imagen-cita { width: 60px; height: 60px; margin-bottom: 6px; }
+  .modal-titulo { font-size: 1rem; margin-bottom: 4px; }
+  .modal-whats { margin-bottom: 12px; font-size: 0.72rem; }
+}
+
+/* ============================================================
+   RESPONSIVE · Grid de perfiles en móvil
+   ============================================================ */
+@media (max-width: 600px) {
+  body { padding: 20px 10px; }
+
+  .grid { gap: 10px; }
+
+  .perfil {
+    padding: 14px 8px;
+    border-radius: 16px;
+  }
+
+  .photo {
+    width: 85px;
+    height: 85px;
+    border-radius: 16px;
+  }
+
+  .name { font-size: 0.88rem; }
+  .Whatsapp { font-size: 0.68rem; }
+  .age { font-size: 0.7rem; margin-bottom: 12px; }
+
+  .btn {
+    padding: 8px 14px;
+    font-size: 0.68rem;
+    letter-spacing: 0.4px;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE · Overlay de pre-agenda (≤ 480px)
+   ============================================================ */
 @media (max-width: 480px) {
-    #preagenda-overlay .imagen-cita { width: 100px; height: 100px; }
-    #preagenda-overlay h2 { font-size: 1.6rem; }
-    #preagenda-overlay p { font-size: 0.9rem; }
-    #preagendarBtn { padding: 14px 32px; font-size: 1rem; letter-spacing: 2px; }
+  #preagenda-overlay .imagen-cita { width: 100px; height: 100px; }
+  #preagenda-overlay h2 { font-size: 1.6rem; }
+  #preagenda-overlay p { font-size: 0.9rem; }
+  #preagendarBtn { padding: 14px 32px; font-size: 1rem; letter-spacing: 2px; }
 }
