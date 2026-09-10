@@ -1264,7 +1264,7 @@ function iniciarCuentaConfirmacion() {
             clearInterval(timerConfirmacion);
             if (contador) contador.textContent = '00:00';
             if (nota) nota.textContent =
-                'El tiempo terminó. Pulsa "No" para reiniciar el conteo o "Sí" si ya te confirmaron.';
+                'Se acabó el tiempo de espera. Pulsa "No" para cancelar y agendar de nuevo, o "Sí" si el barbero ya te confirmó.';
             return;
         }
 
@@ -1373,36 +1373,56 @@ function enviarCalificacion(tipo) {
     mostrarPasoSeguimiento('gracias');
 }
 
-// ---------- PASO 3: finalizar y liberar la página ----------
+// ---------- PASO 3: finalizar / cancelar y liberar la página ----------
 
-function finalizarSeguimiento() {
+function cancelarSeguimiento(mensaje) {
+    // Detener timers
     clearInterval(timerConfirmacion);
     clearInterval(timerCita);
     timerConfirmacion = null;
     timerCita = null;
+    restanteConfirmacion = 0;
 
+    // Resetear estado
     seguimientoActivo = false;
     citaActual = null;
 
+    // Ocultar overlay
     const overlay = document.getElementById('seguimiento-overlay');
     if (overlay) {
         overlay.classList.remove('activo');
         overlay.setAttribute('aria-hidden', 'true');
     }
 
-    // Liberar la página
+    // Liberar la página por completo
     document.body.classList.remove('sin-scroll', 'bloqueado');
 
-    // Resetear pasos (por si se agenda otra cita)
+    // Regresar al paso 1 (por si se agenda otra cita)
     mostrarPasoSeguimiento('confirmacion');
 
+    // Resetear UI interna
     const contadorConfirmacion = document.getElementById('contadorConfirmacion');
-    if (contadorConfirmacion) contadorConfirmacion.textContent = formatoMMSS(CONFIG.ESPERA_CONFIRMACION);
+    if (contadorConfirmacion) {
+        contadorConfirmacion.textContent = formatoMMSS(CONFIG.ESPERA_CONFIRMACION);
+    }
+
+    const nota = document.getElementById('notaConfirmacion');
+    if (nota) nota.textContent = 'Tiempo de espera para la confirmación.';
 
     const linkWhatsManual = document.getElementById('linkWhatsManual');
     if (linkWhatsManual) linkWhatsManual.classList.add('oculto');
 
-    mostrarToast('Ya puedes agendar una nueva cita 💈', 'ok');
+    // Habilitar el modal de nuevo por si quedó trabado algo
+    document.querySelectorAll('.perfil .btn').forEach(function (btn) {
+        btn.classList.remove('btn-bloqueado');
+        btn.removeAttribute('aria-disabled');
+    });
+
+    if (mensaje) mostrarToast(mensaje, 'ok');
+}
+
+function finalizarSeguimiento() {
+    cancelarSeguimiento('Ya puedes agendar una nueva cita 💈');
 }
 
 // ---------- Listeners del seguimiento ----------
@@ -1416,9 +1436,11 @@ function inicializarSeguimiento() {
 
     if (btnNo) {
         btnNo.addEventListener('click', function () {
-            const nota = document.getElementById('notaConfirmacion');
-            if (nota) nota.textContent = 'Aún sin confirmar. Espera un poco y vuelve a preguntar.';
-            iniciarCuentaConfirmacion();
+            // El barbero NO confirmó → se cancela todo el seguimiento
+            // y el cliente queda libre para volver a agendar.
+            if (confirm('¿Cancelar la cita y volver a agendar?')) {
+                cancelarSeguimiento('Cita cancelada. Ya puedes agendar de nuevo 💈');
+            }
         });
     }
 
