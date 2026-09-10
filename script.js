@@ -37,7 +37,7 @@ function ajustarResponsive() {
 }
 
 // ============================================================
-//  ENVIAR TODOS LOS CAMPOS A WHATSAPP + RESET
+//  ENVIAR TODOS LOS CAMPOS A WHATSAPP + RESET + PREGUNTA PDF
 // ============================================================
 
 function enviarWhatsApp() {
@@ -65,6 +65,7 @@ function enviarWhatsApp() {
         hour12: true
     });
 
+    // ---------- Mensaje de WhatsApp ----------
     let mensaje = `📌 *NUEVA CITA DE BARBERÍA*%0A`;
     mensaje += `👤 *Nombre:* ${nombre}%0A`;
     mensaje += `📅 *Fecha:* ${fechaFormateada}%0A`;
@@ -79,12 +80,230 @@ function enviarWhatsApp() {
 
     window.open(url, '_blank');
 
-    // Resetear formulario
+    // ---------- Preparar datos del PDF (hora real del registro) ----------
+    const ahora = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+
+    const generado = ahora.toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    });
+
+    const codigo = 'CITA-'
+        + ahora.getFullYear()
+        + pad(ahora.getMonth() + 1)
+        + pad(ahora.getDate())
+        + '-'
+        + pad(ahora.getHours())
+        + pad(ahora.getMinutes());
+
+    const datosPDF = {
+        nombre:       nombre,
+        fecha:        fechaFormateada,
+        hora:         horaFormateada,
+        servicio:     servicio,
+        generado:     generado,
+        codigo:       codigo,
+        fechaArchivo: fechaRaw,
+        horaArchivo:  pad(ahora.getHours()) + pad(ahora.getMinutes())
+    };
+
+    // ---------- Preguntar al usuario si desea el comprobante ----------
+    preguntarDescargaComprobante(datosPDF);
+
+    // ---------- Resetear formulario ----------
     document.getElementById('nombreInput').value = '';
     document.getElementById('fechaInput').value = '';
     document.getElementById('horaInput').value = '';
-    document.getElementById('servicioInput').value = '';
+    if (document.getElementById('servicioInput')) {
+        document.getElementById('servicioInput').value = '';
+    }
     document.getElementById('nombreInput').focus();
+}
+
+// ============================================================
+//  MODAL PERSONALIZADO: ¿DESCARGAR COMPROBANTE?
+// ============================================================
+
+function preguntarDescargaComprobante(datosPDF) {
+    // Crear estilos una sola vez
+    if (!document.getElementById('modal-comprobante-styles')) {
+        const style = document.createElement('style');
+        style.id = 'modal-comprobante-styles';
+        style.textContent = `
+            #modal-comprobante-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                background: rgba(0, 0, 0, .78);
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity .3s ease, visibility .3s ease;
+                font-family: inherit;
+            }
+            #modal-comprobante-overlay.activo {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .modal-comprobante {
+                width: 100%;
+                max-width: 400px;
+                background: #ffffff;
+                border-radius: 16px;
+                padding: 28px 24px 22px;
+                text-align: center;
+                box-shadow: 0 25px 60px rgba(0, 0, 0, .5);
+                transform: scale(.85) translateY(20px);
+                transition: transform .35s cubic-bezier(.2, .9, .3, 1.2);
+                color: #1f2937;
+            }
+            #modal-comprobante-overlay.activo .modal-comprobante {
+                transform: scale(1) translateY(0);
+            }
+
+            .modal-comprobante .icono {
+                width: 70px;
+                height: 70px;
+                margin: 0 auto 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #f5d488, #c6a05a);
+                font-size: 2rem;
+                box-shadow: 0 8px 22px rgba(198, 160, 90, .45);
+            }
+
+            .modal-comprobante h2 {
+                margin: 0 0 10px;
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #111827;
+            }
+
+            .modal-comprobante p {
+                margin: 0 0 22px;
+                font-size: .95rem;
+                line-height: 1.5;
+                color: #4b5563;
+            }
+
+            .modal-comprobante .acciones {
+                display: flex;
+                gap: 10px;
+            }
+
+            .modal-comprobante button {
+                flex: 1;
+                padding: 12px 16px;
+                border: none;
+                border-radius: 10px;
+                font-size: .95rem;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: inherit;
+                transition: transform .15s ease, box-shadow .2s ease, background .2s ease, filter .2s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+
+            .modal-comprobante .btn-si {
+                background: linear-gradient(135deg, #111827, #1f2937);
+                color: #ffffff;
+                box-shadow: 0 6px 16px rgba(17, 24, 39, .35);
+            }
+            .modal-comprobante .btn-si:hover {
+                filter: brightness(1.15);
+                transform: translateY(-1px);
+            }
+            .modal-comprobante .btn-si:active {
+                transform: scale(.97);
+            }
+
+            .modal-comprobante .btn-no {
+                background: #f3f4f6;
+                color: #4b5563;
+            }
+            .modal-comprobante .btn-no:hover {
+                background: #e5e7eb;
+            }
+            .modal-comprobante .btn-no:active {
+                transform: scale(.97);
+            }
+
+            body.modal-comprobante-abierto { overflow: hidden; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Eliminar cualquier modal previo
+    const anterior = document.getElementById('modal-comprobante-overlay');
+    if (anterior) anterior.remove();
+
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'modal-comprobante-overlay';
+    overlay.innerHTML = `
+        <div class="modal-comprobante" role="dialog" aria-modal="true" aria-labelledby="modal-comprobante-titulo">
+            <div class="icono">🧾</div>
+            <h2 id="modal-comprobante-titulo">¿Descargar comprobante?</h2>
+            <p>Tu cita fue registrada. ¿Deseas descargar el comprobante en PDF con todos los detalles?</p>
+            <div class="acciones">
+                <button type="button" class="btn-no" id="modal-comprobante-no">Ahora no</button>
+                <button type="button" class="btn-si" id="modal-comprobante-si">Sí, descargar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    document.body.classList.add('modal-comprobante-abierto');
+
+    // Activar animación
+    requestAnimationFrame(() => overlay.classList.add('activo'));
+
+    // Cerrar el modal
+    function cerrarModal() {
+        overlay.classList.remove('activo');
+        document.body.classList.remove('modal-comprobante-abierto');
+        setTimeout(() => overlay.remove(), 350);
+        document.removeEventListener('keydown', manejarTecla);
+    }
+
+    // Confirmar descarga
+    function confirmarDescarga() {
+        cerrarModal();
+        generarPDFCita(datosPDF);
+    }
+
+    // Manejo de teclado
+    function manejarTecla(e) {
+        if (e.key === 'Escape') cerrarModal();
+        if (e.key === 'Enter') confirmarDescarga();
+    }
+
+    // Eventos
+    overlay.querySelector('#modal-comprobante-si').addEventListener('click', confirmarDescarga);
+    overlay.querySelector('#modal-comprobante-no').addEventListener('click', cerrarModal);
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) cerrarModal();
+    });
+    document.addEventListener('keydown', manejarTecla);
+
+    // Foco accesible al botón principal
+    setTimeout(() => {
+        const btnSi = overlay.querySelector('#modal-comprobante-si');
+        if (btnSi) btnSi.focus();
+    }, 320);
 }
 
 // ============================================================
@@ -633,6 +852,211 @@ document.addEventListener('click', function (e) {
 });
 
 // ============================================================
+//  GENERACIÓN DEL PDF DE LA CITA (jsPDF)
+// ============================================================
+
+const JSPDF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+let jspdfPromise = null;
+
+function cargarJsPDF() {
+    if (window.jspdf && window.jspdf.jsPDF) {
+        return Promise.resolve(window.jspdf);
+    }
+    if (jspdfPromise) return jspdfPromise;
+
+    jspdfPromise = new Promise(function (resolve, reject) {
+        const script = document.createElement('script');
+        script.src = JSPDF_CDN;
+        script.async = true;
+        script.onload = function () {
+            if (window.jspdf && window.jspdf.jsPDF) {
+                resolve(window.jspdf);
+            } else {
+                jspdfPromise = null;
+                reject(new Error('jsPDF no se inicializó correctamente.'));
+            }
+        };
+        script.onerror = function () {
+            jspdfPromise = null;
+            reject(new Error('No se pudo descargar jsPDF.'));
+        };
+        document.head.appendChild(script);
+    });
+
+    return jspdfPromise;
+}
+
+function limpiarTextoArchivo(texto) {
+    return String(texto)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')      // quita acentos
+        .replace(/[^a-zA-Z0-9]+/g, '_')       // reemplaza símbolos
+        .replace(/^_+|_+$/g, '')
+        .slice(0, 30) || 'Cliente';
+}
+
+async function generarPDFCita(datos) {
+    try {
+        const { jsPDF } = await cargarJsPDF();
+
+        const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+
+        // ---------- Paleta ----------
+        const OSCURO = [17, 24, 39];
+        const DORADO = [198, 160, 90];
+        const TEXTO  = [30, 30, 30];
+        const SUAVE  = [110, 110, 110];
+        const LINEA  = [222, 222, 222];
+
+        const ancho  = doc.internal.pageSize.getWidth();   // 210 mm
+        const alto   = doc.internal.pageSize.getHeight();  // 297 mm
+        const margen = 18;
+        const cardW  = ancho - margen * 2;
+        const centro = ancho / 2;
+        const cardX  = margen;
+
+        // ---------- CABECERA ----------
+        doc.setFillColor(OSCURO[0], OSCURO[1], OSCURO[2]);
+        doc.rect(0, 0, ancho, 44, 'F');
+
+        doc.setFillColor(DORADO[0], DORADO[1], DORADO[2]);
+        doc.rect(0, 44, ancho, 1.8, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(23);
+        doc.text('CITA DE BARBERÍA', centro, 22, { align: 'center', charSpace: 0.8 });
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10.5);
+        doc.setTextColor(214, 214, 214);
+        doc.text('Comprobante de reserva', centro, 31, { align: 'center' });
+
+        // ---------- TARJETA DE DATOS ----------
+        const filas = [
+            ['NOMBRE',           datos.nombre],
+            ['FECHA DE LA CITA', datos.fecha],
+            ['HORA DE LA CITA',  datos.hora]
+        ];
+        if (datos.servicio) {
+            filas.push(['SERVICIO', datos.servicio]);
+        }
+
+        const cardY  = 62;
+        const rowH   = 18;
+        const padTop = 13;
+        const cardH  = padTop + filas.length * rowH - 4;
+
+        // sombra
+        doc.setFillColor(232, 232, 232);
+        doc.roundedRect(cardX + 1.5, cardY + 1.5, cardW, cardH, 3, 3, 'F');
+
+        // tarjeta
+        doc.setFillColor(250, 250, 250);
+        doc.setDrawColor(LINEA[0], LINEA[1], LINEA[2]);
+        doc.setLineWidth(0.3);
+        doc.roundedRect(cardX, cardY, cardW, cardH, 3, 3, 'FD');
+
+        // franja dorada lateral
+        doc.setFillColor(DORADO[0], DORADO[1], DORADO[2]);
+        doc.roundedRect(cardX + 0.8, cardY + 1.2, 2.2, cardH - 2.4, 1, 1, 'F');
+
+        // filas
+        let y = cardY + padTop;
+        filas.forEach(function (fila, i) {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8.5);
+            doc.setTextColor(SUAVE[0], SUAVE[1], SUAVE[2]);
+            doc.text(fila[0], cardX + 11, y, { charSpace: 0.6 });
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(13.5);
+            doc.setTextColor(TEXTO[0], TEXTO[1], TEXTO[2]);
+            doc.text(String(fila[1]), cardX + 11, y + 7.5);
+
+            if (i < filas.length - 1) {
+                doc.setDrawColor(LINEA[0], LINEA[1], LINEA[2]);
+                doc.setLineWidth(0.2);
+                doc.line(cardX + 11, y + 12.5, cardX + cardW - 11, y + 12.5);
+            }
+            y += rowH;
+        });
+
+        // ---------- CAJA DE REGISTRO ----------
+        const infoY = cardY + cardH + 14;
+        const infoH = 24;
+
+        doc.setFillColor(OSCURO[0], OSCURO[1], OSCURO[2]);
+        doc.roundedRect(cardX, infoY, cardW, infoH, 3, 3, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(DORADO[0], DORADO[1], DORADO[2]);
+        doc.text('REGISTRO GENERADO EL', cardX + 11, infoY + 9, { charSpace: 0.6 });
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(255, 255, 255);
+        doc.text(String(datos.generado), cardX + 11, infoY + 17.5);
+
+        // código de la cita (derecha)
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(175, 175, 175);
+        doc.text('CÓDIGO', cardX + cardW - 11, infoY + 9, { align: 'right', charSpace: 0.6 });
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text(String(datos.codigo), cardX + cardW - 11, infoY + 17.5, { align: 'right' });
+
+        // ---------- NOTA ----------
+        doc.setFont('helvetica', 'italic');
+        doc.setFontSize(10);
+        doc.setTextColor(SUAVE[0], SUAVE[1], SUAVE[2]);
+        doc.text(
+            'Presenta este comprobante al llegar a tu cita.',
+            centro,
+            infoY + infoH + 18,
+            { align: 'center' }
+        );
+
+        // ---------- PIE ----------
+        doc.setDrawColor(LINEA[0], LINEA[1], LINEA[2]);
+        doc.setLineWidth(0.3);
+        doc.line(margen, alto - 34, ancho - margen, alto - 34);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(SUAVE[0], SUAVE[1], SUAVE[2]);
+        doc.text('Gracias por tu preferencia. ¡Te esperamos!', centro, alto - 26, { align: 'center' });
+
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+            'Comprobante generado automáticamente desde el sitio web de reservas.',
+            centro,
+            alto - 20,
+            { align: 'center' }
+        );
+
+        // ---------- GUARDAR ----------
+        const archivo = 'Cita_'
+            + limpiarTextoArchivo(datos.nombre) + '_'
+            + datos.fechaArchivo + '_'
+            + datos.horaArchivo + '.pdf';
+
+        doc.save(archivo);
+        return true;
+
+    } catch (error) {
+        console.error('No se pudo generar el PDF de la cita:', error);
+        alert('⚠️ No se pudo generar el comprobante. Revisa tu conexión a internet e inténtalo de nuevo.');
+        return false;
+    }
+}
+
+// ============================================================
 //  INICIALIZACIÓN
 // ============================================================
 
@@ -661,6 +1085,19 @@ window.addEventListener('load', function() {
 
     // 5) Estado inicial coherente del botón
     sincronizarBotonFlotante();
+
+    // 6) Pre-cargar jsPDF para que el PDF salga al instante
+    const precargarPDF = function () {
+        cargarJsPDF().catch(function () {
+            console.warn('jsPDF no disponible: el PDF no se generará hasta recuperar conexión.');
+        });
+    };
+
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(precargarPDF);
+    } else {
+        setTimeout(precargarPDF, 1500);
+    }
 });
 
 window.addEventListener('resize', ajustarResponsive);
