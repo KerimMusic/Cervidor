@@ -88,27 +88,163 @@ function enviarWhatsApp() {
 }
 
 // ============================================================
+//  ESTILOS DEL BOTÓN FLOTANTE CIRCULAR (se inyectan una vez)
+// ============================================================
+
+function crearEstilosBotonFlotante() {
+    if (document.getElementById('boton-flotante-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'boton-flotante-styles';
+    style.textContent = `
+        /* ---------- Botón flotante circular ---------- */
+        #button2.flotante {
+            position: fixed !important;
+            top: auto !important;
+            left: auto !important;
+            right: 24px !important;
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+
+            width: 62px !important;
+            height: 62px !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50% !important;
+            font-size: 1.5rem !important;
+            font-weight: 700;
+            line-height: 1 !important;
+            text-align: center;
+
+            cursor: pointer;
+            z-index: 9000 !important;
+
+            box-shadow:
+                0 10px 26px rgba(0, 0, 0, .45),
+                0 4px 10px rgba(0, 0, 0, .30) !important;
+
+            transition:
+                transform .25s ease,
+                box-shadow .25s ease,
+                filter .25s ease !important;
+
+            animation: botonFlotanteAparecer .28s ease;
+
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        #button2.flotante:hover {
+            transform: scale(1.08) rotate(90deg);
+            box-shadow:
+                0 14px 32px rgba(0, 0, 0, .55),
+                0 6px 14px rgba(0, 0, 0, .35) !important;
+            filter: brightness(1.12);
+        }
+
+        #button2.flotante:active {
+            transform: scale(.92) rotate(90deg);
+        }
+
+        #button2.flotante:focus-visible {
+            outline: 3px solid rgba(255, 255, 255, .85);
+            outline-offset: 3px;
+        }
+
+        /* Halo pulsante sutil */
+        #button2.flotante::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, .55);
+            opacity: 0;
+            pointer-events: none;
+            animation: botonFlotantePulso 2.4s ease-out infinite;
+        }
+
+        @keyframes botonFlotanteAparecer {
+            from { opacity: 0; transform: scale(.4); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes botonFlotantePulso {
+            0%   { opacity: .55; transform: scale(.9); }
+            70%  { opacity: 0;   transform: scale(1.35); }
+            100% { opacity: 0;   transform: scale(1.35); }
+        }
+
+        /* ---------- Ajustes en móvil ---------- */
+        @media (max-width: 768px) {
+            #button2.flotante {
+                right: 16px !important;
+                bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+                width: 56px !important;
+                height: 56px !important;
+                font-size: 1.3rem !important;
+            }
+        }
+
+        /* ---------- Respeta "reducir movimiento" ---------- */
+        @media (prefers-reduced-motion: reduce) {
+            #button2.flotante,
+            #button2.flotante::after {
+                animation: none !important;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ============================================================
+//  SINCRONIZAR ESTADO DEL BOTÓN (flotante / normal)
+// ============================================================
+
+function sincronizarBotonFlotante() {
+    const galeria = document.getElementById('galeria-container');
+    const boton   = document.getElementById('button2');
+    if (!galeria || !boton) return;
+
+    if (galeria.classList.contains('visible')) {
+        // Galería abierta → botón flotante circular con ✕
+        boton.classList.add('flotante');
+        boton.textContent = '✕';
+        boton.setAttribute('aria-label', 'Mostrar menos');
+        boton.setAttribute('title', 'Mostrar menos');
+        boton.setAttribute('aria-expanded', 'true');
+    } else {
+        // Galería cerrada → botón normal
+        boton.classList.remove('flotante');
+        boton.textContent = 'Ver más';
+        boton.setAttribute('aria-label', 'Ver más');
+        boton.setAttribute('title', 'Ver más');
+        boton.setAttribute('aria-expanded', 'false');
+    }
+}
+
+// ============================================================
 //  ALTERNAR VISIBILIDAD (formulario + galería)
 // ============================================================
 
 function toggleContenido() {
     const formulario = document.getElementById('formulario');
-    const galeria = document.getElementById('galeria-container');
-    const boton = document.getElementById('button2');
+    const galeria    = document.getElementById('galeria-container');
+    const boton      = document.getElementById('button2');
 
     if (!formulario || !galeria || !boton) return;
 
-    // Alternar clase 'oculto' en el formulario
+    // Alternar clases (formulario oculto ↔ galería visible)
     formulario.classList.toggle('oculto');
+    galeria.classList.toggle('visible');
 
-    // Alternar clase 'visible' en la galería (opuesta al formulario)
-    if (galeria.classList.contains('visible')) {
-        galeria.classList.remove('visible');
-        boton.textContent = 'Ver más';
-    } else {
-        galeria.classList.add('visible');
-        boton.textContent = 'Mostrar menos';
-    }
+    // Actualizar el botón (flotante circular o normal)
+    sincronizarBotonFlotante();
 }
 
 // ============================================================
@@ -501,9 +637,13 @@ document.addEventListener('click', function (e) {
 // ============================================================
 
 window.addEventListener('load', function() {
+    // 1) Inyectar estilos del botón flotante ANTES de pintar
+    crearEstilosBotonFlotante();
+
+    // 2) Ajustes responsive
     ajustarResponsive();
 
-    // Botón Agendar
+    // 3) Botón Agendar
     const botonAgendar = document.getElementById('agendarBtn');
     if (botonAgendar) {
         botonAgendar.addEventListener('click', enviarWhatsApp);
@@ -511,13 +651,16 @@ window.addEventListener('load', function() {
         console.warn('No se encontró el botón con id="agendarBtn"');
     }
 
-    // Botón Ver más / Mostrar menos
+    // 4) Botón Ver más / Mostrar menos
     const botonVerMas = document.getElementById('button2');
     if (botonVerMas) {
         botonVerMas.addEventListener('click', toggleContenido);
     } else {
         console.warn('No se encontró el botón con id="button2"');
     }
+
+    // 5) Estado inicial coherente del botón
+    sincronizarBotonFlotante();
 });
 
 window.addEventListener('resize', ajustarResponsive);
