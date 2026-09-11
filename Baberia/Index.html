@@ -1,1 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barber Shop | Sain Nt</title>
+  <link rel="stylesheet" href="estilo.css" />
 
+  <!-- ============================================================
+       Micro-estilos inline para el estado "minimizado" del overlay.
+       Evita el flash visual cuando JS aplica la clase .minimizado.
+       ============================================================ -->
+  <style>
+    #seguimiento-overlay.minimizado {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
+  <div id="contenedor-principal">
+
+    <!-- ==================== EQUIPO / PERFILES ==================== -->
+    <section id="equipo">
+      <img
+        src="https://www.dropbox.com/scl/fi/gk9ovs454q5nmxohsvfz5/Perfil.jpg?rlkey=qo2ha5it6e7pp2cpmdbgvv3h8&st=v2gquohz&raw=1"
+        alt="Barber Shop" class="imagen-cita" />
+      <h1>Barber Shop</h1>
+      <h2 class="galeria-titulo">💈 Nuestro equipo</h2>
+
+      <div class="grid">
+
+        <div class="perfil" data-whatsapp="524622002744" data-nombre="Marco Otoniel Martinez Martinez">
+          <div class="photo-wrapper">
+            <img class="photo"
+              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop"
+              alt="Foto de perfil">
+          </div>
+          <h1 class="name">Marco Otoniel Martinez Martinez</h1>
+          <h1 class="Whatsapp">524622002744</h1>
+          <p class="age">Edad: <span>28 años</span></p>
+          <button class="btn" type="button">Agendar</button>
+        </div>
+
+        <div class="perfil" data-whatsapp="524621098798" data-nombre="María González">
+          <div class="photo-wrapper">
+            <img class="photo"
+              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop"
+              alt="Foto de perfil">
+          </div>
+          <h1 class="name">María González</h1>
+          <h1 class="Whatsapp">524621098798</h1>
+          <p class="age">Edad: <span>28 años</span></p>
+          <button class="btn" type="button">Agendar</button>
+        </div>
+
+        <div class="perfil" data-whatsapp="524621098798" data-nombre="María González">
+          <div class="photo-wrapper">
+            <img class="photo"
+              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop"
+              alt="Foto de perfil">
+          </div>
+          <h1 class="name">María González</h1>
+          <h1 class="Whatsapp">524621098798</h1>
+          <p class="age">Edad: <span>28 años</span></p>
+          <button class="btn" type="button">Agendar</button>
+        </div>
+
+        <div class="perfil" data-whatsapp="524621098798" data-nombre="María González">
+          <div class="photo-wrapper">
+            <img class="photo"
+              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop"
+              alt="Foto de perfil">
+          </div>
+          <h1 class="name">María González</h1>
+          <h1 class="Whatsapp">524621098798</h1>
+          <p class="age">Edad: <span>28 años</span></p>
+          <button class="btn" type="button">Agendar</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== GALERÍA DE FOTOS ==================== -->
+    <div id="galeria-container">
+      <h2 class="galeria-titulo">📸 Fotos de nuestros cortes</h2>
+      <div class="galeria-grid">
+
+        <img src="https://www.dropbox.com/scl/fi/rebb2rkv8m1qwoywlo11x/Corte1.jpg?rlkey=35dyonvdhmhlpkt315h1ktj0w&st=x33bgt6k&raw=1" alt="Corte 1" class="galeria-foto" />
+        <img src="https://www.dropbox.com/scl/fi/h7a01fz50btt3uraj9sbn/Corte2.jpg?rlkey=eo72pn3oqjks4arxpb14tcs82&st=zh1ozt8t&raw=1" alt="Corte 2" class="galeria-foto" />
+        <img src="https://www.dropbox.com/scl/fi/o0qcbgrgojm6f21iariqy/Corte3.jpg?rlkey=83l7flxjhtm822s25ouggsphu&st=lciu3ddf&raw=1" alt="Corte 3" class="galeria-foto" />
+        <img src="https://www.dropbox.com/scl/fi/fuzi708csgy3k9ri1jt11/Corte4.jpg?rlkey=x192fbt3ss76ifsrvoroagul5&st=v8ja7fie&raw=1" alt="Corte 4" class="galeria-foto" />
+        <img src="https://www.dropbox.com/scl/fi/1bytz9dvdk6gybdmdzhyf/Corte5.jpg?rlkey=3t747ysejq23qeg1u5rkk6ebt&st=7eobbdil&raw=1" alt="Corte 5" class="galeria-foto" />
+
+        <img src="https://www.dropbox.com/scl/fi/rebb2rkv8m1qwoywlo11x/Corte1.jpg?rlkey=35dyonvdhmhlpkt315h1ktj0w&st=x33bgt6k&raw=1" alt="Corte 6" class="galeria-foto oculta" />
+        <img src="https://www.dropbox.com/scl/fi/h7a01fz50btt3uraj9sbn/Corte2.jpg?rlkey=eo72pn3oqjks4arxpb14tcs82&st=zh1ozt8t&raw=1" alt="Corte 7" class="galeria-foto oculta" />
+        <img src="https://www.dropbox.com/scl/fi/o0qcbgrgojm6f21iariqy/Corte3.jpg?rlkey=83l7flxjhtm822s25ouggsphu&st=lciu3ddf&raw=1" alt="Corte 8" class="galeria-foto oculta" />
+
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTÓN "VER MÁS" -->
+  <button id="button2" type="button">Ver más</button>
+
+  <!-- ==================== MODAL: FORMULARIO DE CITA ==================== -->
+  <div id="modal-cita" class="modal-overlay" aria-hidden="true">
+    <div class="modal-contenido" role="dialog" aria-modal="true">
+
+      <button class="cerrar-modal" id="cerrarModal" type="button" aria-label="Cerrar">&times;</button>
+
+      <img id="barberoFoto" class="imagen-cita" src="" alt="Barbero" />
+
+      <h2 class="modal-titulo">Agendar con <span id="barberoNombre"></span></h2>
+      <p class="modal-whats">WhatsApp: <strong id="barberoWhats"></strong></p>
+
+      <input type="text" id="nombreInput" placeholder="Tu nombre completo..." required />
+      <input type="text" id="servicioInput" placeholder="Servicio (ej. Corte + Barba)..." />
+
+      <label class="label-banner" for="fechaInput">📅 Fecha</label>
+      <input type="date" id="fechaInput" required />
+
+      <label class="label-banner" for="horaInput">🕒 Hora</label>
+      <input type="time" id="horaInput" required />
+
+      <h3 class="Tex-tucita">Tu cita se agenda por medio de nuestro WhatsApp.</h3>
+      <button id="agendarBtn" type="button">Agendar</button>
+    </div>
+  </div>
+
+  <!-- ==================== PANTALLA DE PRE-AGENDA ==================== -->
+  <div id="preagenda-overlay">
+    <img
+      src="https://www.dropbox.com/scl/fi/gk9ovs454q5nmxohsvfz5/Perfil.jpg?rlkey=qo2ha5it6e7pp2cpmdbgvv3h8&st=v2gquohz&raw=1"
+      alt="Barber shop" class="imagen-cita" />
+    <h2>Estamos cerrados</h2>
+    <p>Nuestro horario terminó a las <strong>9:10 pm</strong>.<br>
+       Puedes dejar tu cita pre-agendada para mañana.</p>
+    <button id="preagendarBtn" type="button">Pre-agendar</button>
+  </div>
+
+  <!-- ============================================================
+       SEGUIMIENTO DE LA CITA (BLOQUEA TODA LA PÁGINA)
+       ============================================================ -->
+  <div id="seguimiento-overlay" aria-hidden="true" role="alertdialog" aria-modal="true" aria-live="assertive">
+    <div class="seg-card">
+
+      <img id="segFoto" class="seg-foto" src="" alt="Barbero" />
+
+      <!-- ---------- PASO 1: ¿EL BARBERO CONFIRMÓ? ---------- -->
+      <div id="pasoConfirmacion" class="seg-paso">
+        <h2 class="seg-titulo">¿El barbero confirmó tu cita?</h2>
+        <p class="seg-sub">Esperando respuesta de <strong id="segNombre">tu barbero</strong></p>
+
+        <div class="seg-contador" id="contadorConfirmacion">05:00</div>
+        <p class="seg-nota" id="notaConfirmacion">Tiempo de espera para la confirmación.</p>
+
+        <div class="seg-botones">
+          <button id="btnNo" class="seg-btn seg-no" type="button">No</button>
+          <button id="btnSi" class="seg-btn seg-si" type="button">Sí</button>
+        </div>
+      </div>
+
+      <!-- ---------- PASO 2: CUENTA REGRESIVA HASTA LA CITA ---------- -->
+      <div id="pasoCita" class="seg-paso oculto">
+        <h2 class="seg-titulo">¡Cita confirmada! 🎉</h2>
+        <p class="seg-sub">
+          Tu cita con <strong id="segNombre2">tu barbero</strong><br>
+          <span id="segFechaCita"></span>
+        </p>
+
+        <div class="seg-contador" id="contadorCita">00:00:00</div>
+        <p class="seg-nota">Tiempo restante para tu cita</p>
+
+        <h3 class="seg-pregunta">¿Cómo fue tu experiencia?</h3>
+        <div class="seg-botones">
+          <button id="btnMala"  class="seg-btn seg-mala"  type="button" disabled>Mala</button>
+          <button id="btnBuena" class="seg-btn seg-buena" type="button" disabled>Buena</button>
+        </div>
+        <p class="seg-nota" id="notaCalificar">Podrás calificar cuando llegue la hora de tu cita.</p>
+
+        <!-- El botón "Cancelar cita" se inyecta aquí automáticamente por JS -->
+      </div>
+
+      <!-- ---------- PASO 3: GRACIAS ---------- -->
+      <div id="pasoGracias" class="seg-paso oculto">
+        <h2 class="seg-titulo" id="graciasTitulo">¡Gracias!</h2>
+        <p class="seg-sub" id="graciasTexto"></p>
+
+        <a id="linkWhatsManual" class="seg-link oculto" href="#" target="_blank" rel="noopener">
+          Abrir WhatsApp manualmente
+        </a>
+
+        <div class="seg-botones">
+          <button id="btnFinalizar" class="seg-btn seg-si" type="button">Finalizar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!--
+    Los siguientes elementos se crean dinámicamente por script.js
+    y NO deben declararse aquí para evitar duplicados:
+
+      - #btnCancelarCita              (botón rojo dentro de #pasoCita)
+      - #modal-motivo-overlay         (modal con motivos de cancelación)
+      - #seguimiento-pill             (pill flotante cuando el overlay se minimiza)
+      - #modal-comprobante-overlay    (modal de descarga del PDF)
+      - #lightbox                     (visor de imágenes de la galería)
+      - #bs-toast                     (notificación tipo toast)
+  -->
+
+  <script src="script.js"></script>
+</body>
+</html>
